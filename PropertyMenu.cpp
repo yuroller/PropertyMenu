@@ -32,6 +32,7 @@ void Property::nextFocusPart()
 	_focusPart++;
 	if (_focusPart == _maxFocusParts) {
 		_focusPart = 0;
+		onExitEdit();
 	}
 }
 
@@ -47,10 +48,18 @@ void Property::enterEdit(LCD *lcd, const PaintPos *pos)
 {
 	assert(lcd != NULL);
 	assert(pos != NULL);
+	onEnterEdit();
 	_focusPart = 1;
 	paintEdit(lcd, pos);
 }
 
+void Property::onEnterEdit()
+{
+}
+
+void Property::onExitEdit()
+{
+}
 
 ///////////////////////////////////////////////////////////////////////////
 // PropertyTime
@@ -63,6 +72,16 @@ PropertyTime::PropertyTime(const __FlashStringHelper *name, PropertyTime::Time *
 {
 	assert(var != NULL);
 	assert(step > 0);
+}
+
+void PropertyTime::onEnterEdit()
+{
+	if (_var->hour > 23) {
+		_var->hour = 23;
+	}
+	if (_var->mins > 59) {
+		_var->hour = 59;
+	}
 }
 
 void PropertyTime::paintEdit(LCD *lcd, const PaintPos *pos) const

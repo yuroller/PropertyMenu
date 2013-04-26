@@ -39,6 +39,8 @@ public:
 	void paintLabel(LCD *lcd, const PaintPos *pos) const;
 	void enterEdit(LCD *lcd, const PaintPos *pos);
 
+	virtual void onEnterEdit();
+	virtual void onExitEdit();
 	virtual void paintEdit(LCD *lcd, const PaintPos *pos) const = 0;
 	virtual bool processEditInput(Button button) = 0; // true if it needs redraw
 
@@ -64,6 +66,7 @@ public:
 		uint8_t mins;
 	};
 	PropertyTime(const __FlashStringHelper *name, Time *var, uint8_t step=1);
+	void onEnterEdit();
 	void paintEdit(LCD *lcd, const PaintPos *pos) const;
 	bool processEditInput(Button button);
 
