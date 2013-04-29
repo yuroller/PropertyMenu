@@ -13,7 +13,7 @@ const __FlashStringHelper *LBL_APPLY = F("Apply");
 
 // settings
 PropertyTime::Time clockTime;
-PropertyDate::Date clockDate = {0, 1, 1};
+PropertyDate::Date clockDate;
 PropertyTime clockProp(LBL_TIME, &clockTime);
 PropertyDate dateProp(LBL_DATE, &clockDate); 
 
@@ -28,7 +28,7 @@ PropertyPage settingsPropPage(settingsProperties);
 // recording
 uint8_t id;
 bool active;
-uint16_t program = 1;
+uint16_t program;
 PropertyDate::Date dateStart;
 PropertyTime::Time timeStart;
 PropertyTime::Time timeEnd;
@@ -37,19 +37,19 @@ bool weekly;
 static void recordingApply() {
 };
 
-PropertyU8 idProp(LBL_ID, &id, 0, 9, 1);
+PropertyU8 idProp(LBL_ID, &id, 0, 9);
 PropertyBool activeProp(LBL_ACTIVE, &active);
-PropertyU16 programProp(LBL_PROGRAM, &program, 1, 999, 1);
+//PropertyU16 programProp(LBL_PROGRAM, &program, 1, 999);
 PropertyDate dateStartProp(LBL_DATE, &dateStart);
-PropertyTime timeStartProp(LBL_TIME_START, &timeStart, 1);
-PropertyTime timeEndProp(LBL_TIME_END, &timeEnd, 1);
+PropertyTime timeStartProp(LBL_TIME_START, &timeStart);
+PropertyTime timeEndProp(LBL_TIME_END, &timeEnd);
 PropertyBool weeklyProp(LBL_WEEKLY, &weekly);
 PropertyAction recordingApplyProp(LBL_APPLY, recordingApply);
 
 Property *recordingProperties[] = {
 	&idProp,
 	&activeProp,
-	&programProp,
+//	&programProp,
 	&dateStartProp,
 	&timeStartProp,
 	&timeEndProp,

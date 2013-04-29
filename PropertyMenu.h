@@ -65,14 +65,13 @@ public:
 		uint8_t hour;
 		uint8_t mins;
 	};
-	PropertyTime(const __FlashStringHelper *name, Time *var, uint8_t step=1);
+	PropertyTime(const __FlashStringHelper *name, Time *var);
 	void onEnterEdit();
 	void paintEdit(LCD *lcd, const PaintPos *pos) const;
 	bool processEditInput(Button button);
 
 private:
 	Time *_var;
-	uint8_t _step;
 };
 
 
@@ -89,6 +88,8 @@ public:
 		uint8_t day;
 	};
 	PropertyDate(const __FlashStringHelper *name, Date *var);
+	void onEnterEdit();
+	void onExitEdit();
 	void paintEdit(LCD *lcd, const PaintPos *pos) const;
 	bool processEditInput(Button button);
 
@@ -98,52 +99,41 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////
-// PropertyNum
+// PropertyU8
 ///////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-class PropertyNum: public Property
+class PropertyU8: public Property
 {
 public:
-	PropertyNum(const __FlashStringHelper *name, T *var, T limitMin, T limitMax, T step=1);
+	PropertyU8(const __FlashStringHelper *name, uint8_t *var, uint8_t limitMin, uint8_t limitMax);
+	void onEnterEdit();
 	void paintEdit(LCD *lcd, const PaintPos *pos) const;
 	bool processEditInput(Button button);
 
 private:
-	T *_var;
-	T _limitMin;
-	T _limitMax;
-	T _step;
+	uint8_t *_var;
+	uint8_t _limitMin;
+	uint8_t _limitMax;
 };
 
-template <typename T>
-PropertyNum<T>::PropertyNum(const __FlashStringHelper *name, T *var, T limitMin, T limitMax, T step)
-: Property(name, 1),
-	_var(var),
-	_limitMin(limitMin),
-	_limitMax(limitMax),
-	_step(step)
-{
-	assert(var != NULL);
-	assert(step > 0);
-	assert(limitMin < limitMax);
-}
 
-template <typename T>
-void PropertyNum<T>::paintEdit(LCD *lcd, const PaintPos *pos) const
-{
-	assert(0);
-}
+///////////////////////////////////////////////////////////////////////////
+// PropertyU16
+///////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-bool PropertyNum<T>::processEditInput(Button button)
+class PropertyU16: public Property
 {
-	assert(0);
-	return false;
-}
+public:
+	PropertyU16(const __FlashStringHelper *name, uint16_t *var, uint16_t limitMin, uint16_t limitMax);
+	void onEnterEdit();
+	void paintEdit(LCD *lcd, const PaintPos *pos) const;
+	bool processEditInput(Button button);
 
-typedef PropertyNum<uint8_t> PropertyU8;
-typedef PropertyNum<uint16_t> PropertyU16;
+private:
+	uint16_t *_var;
+	uint16_t _limitMin;
+	uint16_t _limitMax;
+};
 
 
 ///////////////////////////////////////////////////////////////////////////
