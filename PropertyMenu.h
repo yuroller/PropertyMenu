@@ -10,12 +10,12 @@
 
 typedef void (*Callback)(void);
 
-enum Button {
-	BUTTON_DOWN,
-	BUTTON_UP,
-	BUTTON_ENTER,
+enum ButtonPress {
+	BUTTON_PRESS_DOWN,
+	BUTTON_PRESS_UP,
+	BUTTON_PRESS_ENTER,
 
-	BUTTON_COUNT
+	BUTTON_PRESS_COUNT
 };
 
 
@@ -42,7 +42,7 @@ public:
 	virtual void onEnterEdit();
 	virtual void onExitEdit();
 	virtual void paintEdit(LCD *lcd, const PaintPos *pos) const = 0;
-	virtual bool processEditInput(Button button) = 0; // true if it needs redraw
+	virtual bool processEditInput(ButtonPress button) = 0; // true if it needs redraw
 
 protected:
 	Property(const __FlashStringHelper *name, uint8_t maxFocusParts);
@@ -68,7 +68,7 @@ public:
 	PropertyTime(const __FlashStringHelper *name, Time *var);
 	void onEnterEdit();
 	void paintEdit(LCD *lcd, const PaintPos *pos) const;
-	bool processEditInput(Button button);
+	bool processEditInput(ButtonPress button);
 
 private:
 	Time *_var;
@@ -91,7 +91,7 @@ public:
 	void onEnterEdit();
 	void onExitEdit();
 	void paintEdit(LCD *lcd, const PaintPos *pos) const;
-	bool processEditInput(Button button);
+	bool processEditInput(ButtonPress button);
 
 private:
 	Date *_var;
@@ -108,7 +108,7 @@ public:
 	PropertyU16(const __FlashStringHelper *name, uint16_t *var, uint16_t limitMin, uint16_t limitMax);
 	void onEnterEdit();
 	void paintEdit(LCD *lcd, const PaintPos *pos) const;
-	bool processEditInput(Button button);
+	bool processEditInput(ButtonPress button);
 
 private:
 	uint16_t *_var;
@@ -126,7 +126,7 @@ class PropertyBool: public Property
 public:
 	PropertyBool(const __FlashStringHelper *name, bool *var);
 	void paintEdit(LCD *lcd, const PaintPos *pos) const;
-	bool processEditInput(Button button);
+	bool processEditInput(ButtonPress button);
 private:
 	bool *_var;
 };
@@ -141,7 +141,7 @@ class PropertyAction: public Property
 public:
 	PropertyAction(const __FlashStringHelper *name, Callback callback);
 	void paintEdit(LCD *lcd, const PaintPos *pos) const;
-	bool processEditInput(Button button);
+	bool processEditInput(ButtonPress button);
 private:
 	Callback _callback;
 };
@@ -155,7 +155,7 @@ class Page
 {
 public:
 	virtual void paint(LCD *lcd) const = 0;
-	virtual bool buttonInput(Button button) = 0;
+	virtual bool buttonInput(ButtonPress button) = 0;
 };
 
 
@@ -168,7 +168,7 @@ class PropertyPage: public Page
 public:
 	PropertyPage(Property *propertiesAry[], Callback beforeShowing=NULL);
 	void paint(LCD *lcd) const;
-	bool buttonInput(Button button);
+	bool buttonInput(ButtonPress button);
 
 private:
 	Property *_propertiesAry;

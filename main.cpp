@@ -1,15 +1,21 @@
 #include "PropertyMenu.h"
 
+#define PROGMEM
+
+#define MakeFlashString(name, value) \
+  static const char __##name[] PROGMEM = value; \
+  const __FlashStringHelper *name = reinterpret_cast<const __FlashStringHelper *>(__##name);
+
 // labels
-const __FlashStringHelper *LBL_TIME = F("Time");
-const __FlashStringHelper *LBL_DATE = F("Date");
-const __FlashStringHelper *LBL_ID = F("Id");
-const __FlashStringHelper *LBL_ACTIVE = F("Active");
-const __FlashStringHelper *LBL_PROGRAM = F("Program");
-const __FlashStringHelper *LBL_TIME_START = F("Time start");
-const __FlashStringHelper *LBL_TIME_END = F("Time end");
-const __FlashStringHelper *LBL_WEEKLY = F("Weekly");
-const __FlashStringHelper *LBL_APPLY = F("Apply");
+MakeFlashString(LBL_TIME, "Time");
+MakeFlashString(LBL_DATE, "Date");
+MakeFlashString(LBL_ID, "Id");
+MakeFlashString(LBL_ACTIVE, "Active");
+MakeFlashString(LBL_PROGRAM, "Program");
+MakeFlashString(LBL_TIME_START, "Time start");
+MakeFlashString(LBL_TIME_END, "Time end");
+MakeFlashString(LBL_WEEKLY, "Weekly");
+MakeFlashString(LBL_APPLY, "Apply");
 
 // settings
 PropertyTime::Time clockTime;

@@ -2,7 +2,7 @@
 
 const char SEL_LEFT = '[';
 const char SEL_RIGHT = ']';
-const __FlashStringHelper *PREV_MENU = F("..");
+const char PREV_MENU[] = "..";
 
 static void pad00Print(LCD *lcd, uint8_t n)
 {
@@ -152,30 +152,31 @@ void PropertyTime::paintEdit(LCD *lcd, const PaintPos *pos) const
 			break;
 		default:
 			lcd->print(':');
+			break;
 	}
 	pad00Print(lcd, _var->mins);
 	lcd->print(focusPart == 2 ? SEL_RIGHT : ' ');
 }
 
-bool PropertyTime::processEditInput(Button button)
+bool PropertyTime::processEditInput(ButtonPress button)
 {
 	uint8_t focusPart = getFocusPart();
 	assert(0 < focusPart && focusPart < 2);
-	if (button == BUTTON_DOWN) {
+	if (button == BUTTON_PRESS_DOWN) {
 		if (focusPart == 1) {
 			wrapDecrease<uint8_t>(&_var->hour, 0, 23);
 		} else {
 			wrapDecrease<uint8_t>(&_var->mins, 0, 59);
 		}
 		return true;
-	} else if (button == BUTTON_UP) {
+	} else if (button == BUTTON_PRESS_UP) {
 		if (focusPart == 1) {
 			wrapIncrease<uint8_t>(&_var->hour, 0, 23);
 		} else {
 			wrapIncrease<uint8_t>(&_var->mins, 0, 59);
 		}
 		return true;
-	} else if (button == BUTTON_ENTER) {
+	} else if (button == BUTTON_PRESS_ENTER) {
 		nextFocusPart();
 		return true;
 	}
@@ -225,6 +226,7 @@ void PropertyDate::paintEdit(LCD *lcd, const PaintPos *pos) const
 			break;
 		default:
 			lcd->print('/');
+			break;
 	}
 	pad00Print(lcd, _var->month);
 	switch (focusPart) {
@@ -236,17 +238,18 @@ void PropertyDate::paintEdit(LCD *lcd, const PaintPos *pos) const
 			break;
 		default:
 			lcd->print('/');
+			break;
 	}
 	lcd->print("20");
 	pad00Print(lcd, _var->year2000);
 	lcd->print(focusPart == 3 ? SEL_RIGHT : ' ');
 }
 
-bool PropertyDate::processEditInput(Button button)
+bool PropertyDate::processEditInput(ButtonPress button)
 {
 	uint8_t focusPart = getFocusPart();
 	assert(0 < focusPart && focusPart < 4);
-	if (button == BUTTON_DOWN) {
+	if (button == BUTTON_PRESS_DOWN) {
 		if (focusPart == 1) {
 			wrapDecrease<uint8_t>(&_var->day, 1, 31);
 		} else if (focusPart == 2) {
@@ -255,7 +258,7 @@ bool PropertyDate::processEditInput(Button button)
 			wrapDecrease<uint8_t>(&_var->year2000, 0, 99);
 		}
 		return true;
-	} else if (button == BUTTON_UP) {
+	} else if (button == BUTTON_PRESS_UP) {
 		if (focusPart == 1) {
 			wrapIncrease<uint8_t>(&_var->day, 1, 31);
 		} else if (focusPart == 2) {
@@ -264,7 +267,7 @@ bool PropertyDate::processEditInput(Button button)
 			wrapIncrease<uint8_t>(&_var->year2000, 0, 99);
 		}
 		return true;
-	} else if (button == BUTTON_ENTER) {
+	} else if (button == BUTTON_PRESS_ENTER) {
 		nextFocusPart();
 		return true;
 	}
@@ -323,17 +326,16 @@ void PropertyU16::paintEdit(LCD *lcd, const PaintPos *pos) const
 	lcd->print(focusPart == 1 ? SEL_RIGHT : ' ');
 }
 
-bool PropertyU16::processEditInput(Button button)
+bool PropertyU16::processEditInput(ButtonPress button)
 {
-	uint8_t focusPart = getFocusPart();
-	assert(focusPart == 1);
-	if (button == BUTTON_DOWN) {
+	assert(getFocusPart() == 1);
+	if (button == BUTTON_PRESS_DOWN) {
 		wrapDecrease(_var, _limitMin, _limitMax);
 		return true;
-	} else if (button == BUTTON_UP) {
+	} else if (button == BUTTON_PRESS_UP) {
 		wrapIncrease(_var, _limitMin, _limitMax);
 		return true;
-	} else if (button == BUTTON_ENTER) {
+	} else if (button == BUTTON_PRESS_ENTER) {
 		nextFocusPart();
 		return true;
 	}
@@ -356,7 +358,7 @@ void PropertyBool::paintEdit(LCD *lcd, const PaintPos *pos) const
 	assert(0);
 }
 
-bool PropertyBool::processEditInput(Button button)
+bool PropertyBool::processEditInput(ButtonPress button)
 {
 	assert(0);
 	return false;
@@ -378,7 +380,7 @@ void PropertyAction::paintEdit(LCD *lcd, const PaintPos *pos) const
 	assert(0);
 }
 
-bool PropertyAction::processEditInput(Button button)
+bool PropertyAction::processEditInput(ButtonPress button)
 {
 	assert(0);
 	return false;
@@ -401,7 +403,7 @@ void PropertyPage::paint(LCD *lcd) const
 	assert(0);
 }
 
-bool PropertyPage::buttonInput(Button button)
+bool PropertyPage::buttonInput(ButtonPress button)
 {
 	assert(0);
 	return false;
