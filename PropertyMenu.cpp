@@ -28,7 +28,8 @@ static void padMulti0Print(LCD *lcd, uint16_t n, uint8_t width)
 	lcd->print(n);
 }
 
-static void clipU8(uint8_t *n, uint8_t low, uint8_t high)
+template<typename T>
+static void clipValue(T *n, T low, T high)
 {
 	assert(n != NULL);
 	assert(low < high);
@@ -40,7 +41,8 @@ static void clipU8(uint8_t *n, uint8_t low, uint8_t high)
 	}
 }
 
-static void wrapDecreaseU8(uint8_t *n, uint8_t low, uint8_t high)
+template<typename T>
+static void wrapDecrease(T *n, T low, T high)
 {
 	assert(n != NULL);
 	assert(low < high);
@@ -52,7 +54,8 @@ static void wrapDecreaseU8(uint8_t *n, uint8_t low, uint8_t high)
 	}
 }
 
-static void wrapIncreaseU8(uint8_t *n, uint8_t low, uint8_t high)
+template<typename T>
+static void wrapIncrease(T *n, T low, T high)
 {
 	assert(n != NULL);
 	assert(low < high);
@@ -160,16 +163,16 @@ bool PropertyTime::processEditInput(Button button)
 	assert(0 < focusPart && focusPart < 2);
 	if (button == BUTTON_DOWN) {
 		if (focusPart == 1) {
-			wrapDecreaseU8(&_var->hour, 0, 23);
+			wrapDecrease<uint8_t>(&_var->hour, 0, 23);
 		} else {
-			wrapDecreaseU8(&_var->mins, 0, 59);
+			wrapDecrease<uint8_t>(&_var->mins, 0, 59);
 		}
 		return true;
 	} else if (button == BUTTON_UP) {
 		if (focusPart == 1) {
-			wrapIncreaseU8(&_var->hour, 0, 23);
+			wrapIncrease<uint8_t>(&_var->hour, 0, 23);
 		} else {
-			wrapIncreaseU8(&_var->mins, 0, 59);
+			wrapIncrease<uint8_t>(&_var->mins, 0, 59);
 		}
 		return true;
 	} else if (button == BUTTON_ENTER) {
@@ -193,8 +196,8 @@ PropertyDate::PropertyDate(const __FlashStringHelper *name, PropertyDate::Date *
 
 void PropertyDate::onEnterEdit()
 {
-	clipU8(&_var->day, 1, 31);
-	clipU8(&_var->month, 1, 12);
+	clipValue<uint8_t>(&_var->day, 1, 31);
+	clipValue<uint8_t>(&_var->month, 1, 12);
 	if (_var->year2000 > 99) {
 		_var->year2000 = 99;
 	}
@@ -245,20 +248,20 @@ bool PropertyDate::processEditInput(Button button)
 	assert(0 < focusPart && focusPart < 4);
 	if (button == BUTTON_DOWN) {
 		if (focusPart == 1) {
-			wrapDecreaseU8(&_var->day, 1, 31);
+			wrapDecrease<uint8_t>(&_var->day, 1, 31);
 		} else if (focusPart == 2) {
-			wrapDecreaseU8(&_var->month, 1, 12);
+			wrapDecrease<uint8_t>(&_var->month, 1, 12);
 		} else {
-			wrapDecreaseU8(&_var->year2000, 0, 99);
+			wrapDecrease<uint8_t>(&_var->year2000, 0, 99);
 		}
 		return true;
 	} else if (button == BUTTON_UP) {
 		if (focusPart == 1) {
-			wrapIncreaseU8(&_var->day, 1, 31);
+			wrapIncrease<uint8_t>(&_var->day, 1, 31);
 		} else if (focusPart == 2) {
-			wrapIncreaseU8(&_var->month, 1, 12);
+			wrapIncrease<uint8_t>(&_var->month, 1, 12);
 		} else {
-			wrapIncreaseU8(&_var->year2000, 0, 99);
+			wrapIncrease<uint8_t>(&_var->year2000, 0, 99);
 		}
 		return true;
 	} else if (button == BUTTON_ENTER) {
@@ -270,10 +273,23 @@ bool PropertyDate::processEditInput(Button button)
 
 
 ///////////////////////////////////////////////////////////////////////////
-// PropertyU8
+// PropertyU16
 ///////////////////////////////////////////////////////////////////////////
 
-PropertyU8::PropertyU8(const __FlashStringHelper *name, uint8_t *var, uint8_t limitMin, uint8_t limitMax)
+struct LimitWidth {
+	uint16_t moreThan;
+	uint8_t width;
+};
+
+static const LimitWidth limitWidth[] = {
+	{ 9999, 5 },
+	{ 999, 4 }, 
+	{ 99, 3 },
+	{ 9, 2 },
+	{ 0, 1 }
+};
+
+PropertyU16::PropertyU16(const __FlashStringHelper *name, uint16_t *var, uint16_t limitMin, uint16_t limitMax)
 : Property(name, 1),
 	_var(var),
 	_limitMin(limitMin),
@@ -281,14 +297,21 @@ PropertyU8::PropertyU8(const __FlashStringHelper *name, uint8_t *var, uint8_t li
 {
 	assert(var != NULL);
 	assert(limitMax > limitMin);
+
+	for (const LimitWidth *lw = &limitWidth[0]; ; ++lw) {
+		if (lw->moreThan < limitMax) {
+			_displayWidth = lw->width;
+			break;
+		}
+	}
 }
 
-void PropertyU8::onEnterEdit()
+void PropertyU16::onEnterEdit()
 {
-	clipU8(_var, _limitMin, _limitMax);
+	clipValue(_var, _limitMin, _limitMax);
 }
 
-void PropertyU8::paintEdit(LCD *lcd, const PaintPos *pos) const
+void PropertyU16::paintEdit(LCD *lcd, const PaintPos *pos) const
 {
 	assert(lcd != NULL);
 	assert(pos != NULL);
@@ -296,19 +319,19 @@ void PropertyU8::paintEdit(LCD *lcd, const PaintPos *pos) const
 
 	uint8_t focusPart = getFocusPart();
 	lcd->print(focusPart == 1 ? SEL_LEFT : ' ' );
-	padMulti0Print(lcd, *_var, 3);
+	padMulti0Print(lcd, *_var, _displayWidth);
 	lcd->print(focusPart == 1 ? SEL_RIGHT : ' ');
 }
 
-bool PropertyU8::processEditInput(Button button)
+bool PropertyU16::processEditInput(Button button)
 {
 	uint8_t focusPart = getFocusPart();
 	assert(focusPart == 1);
 	if (button == BUTTON_DOWN) {
-		wrapDecreaseU8(_var, _limitMin, _limitMax);
+		wrapDecrease(_var, _limitMin, _limitMax);
 		return true;
 	} else if (button == BUTTON_UP) {
-		wrapIncreaseU8(_var, _limitMin, _limitMax);
+		wrapIncrease(_var, _limitMin, _limitMax);
 		return true;
 	} else if (button == BUTTON_ENTER) {
 		nextFocusPart();

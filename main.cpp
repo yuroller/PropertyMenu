@@ -26,7 +26,7 @@ Property *settingsProperties[] = {
 PropertyPage settingsPropPage(settingsProperties);
 
 // recording
-uint8_t id;
+uint16_t id;
 bool active;
 uint16_t program;
 PropertyDate::Date dateStart;
@@ -37,9 +37,9 @@ bool weekly;
 static void recordingApply() {
 };
 
-PropertyU8 idProp(LBL_ID, &id, 0, 9);
+PropertyU16 idProp(LBL_ID, &id, 0, 9);
 PropertyBool activeProp(LBL_ACTIVE, &active);
-//PropertyU16 programProp(LBL_PROGRAM, &program, 1, 999);
+PropertyU16 programProp(LBL_PROGRAM, &program, 1, 999);
 PropertyDate dateStartProp(LBL_DATE, &dateStart);
 PropertyTime timeStartProp(LBL_TIME_START, &timeStart);
 PropertyTime timeEndProp(LBL_TIME_END, &timeEnd);
@@ -49,7 +49,7 @@ PropertyAction recordingApplyProp(LBL_APPLY, recordingApply);
 Property *recordingProperties[] = {
 	&idProp,
 	&activeProp,
-//	&programProp,
+	&programProp,
 	&dateStartProp,
 	&timeStartProp,
 	&timeEndProp,

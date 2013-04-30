@@ -102,25 +102,6 @@ private:
 // PropertyU8
 ///////////////////////////////////////////////////////////////////////////
 
-class PropertyU8: public Property
-{
-public:
-	PropertyU8(const __FlashStringHelper *name, uint8_t *var, uint8_t limitMin, uint8_t limitMax);
-	void onEnterEdit();
-	void paintEdit(LCD *lcd, const PaintPos *pos) const;
-	bool processEditInput(Button button);
-
-private:
-	uint8_t *_var;
-	uint8_t _limitMin;
-	uint8_t _limitMax;
-};
-
-
-///////////////////////////////////////////////////////////////////////////
-// PropertyU16
-///////////////////////////////////////////////////////////////////////////
-
 class PropertyU16: public Property
 {
 public:
@@ -133,8 +114,8 @@ private:
 	uint16_t *_var;
 	uint16_t _limitMin;
 	uint16_t _limitMax;
+	uint8_t _displayWidth;
 };
-
 
 ///////////////////////////////////////////////////////////////////////////
 // PropertyBool
