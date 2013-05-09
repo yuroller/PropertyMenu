@@ -4,7 +4,7 @@ const char SEL_LEFT = '[';
 const char SEL_RIGHT = ']';
 const char PREV_MENU[] = "..";
 
-static void pad00Print(LCD *lcd, uint8_t n)
+static void pad00Print(LCDWin *lcd, uint8_t n)
 {
 	assert(lcd != NULL);
 	assert(n < 100);
@@ -14,7 +14,7 @@ static void pad00Print(LCD *lcd, uint8_t n)
 	lcd->print(n);
 }
 
-static void padMulti0Print(LCD *lcd, uint16_t n, uint8_t width)
+static void padMulti0Print(LCDWin *lcd, uint16_t n, uint8_t width)
 {
 	assert(lcd != NULL);
 	uint16_t m = 10;
@@ -68,6 +68,21 @@ static void wrapIncrease(T *n, T low, T high)
 }
 
 ///////////////////////////////////////////////////////////////////////////
+// Screen
+///////////////////////////////////////////////////////////////////////////
+
+Screen::Screen(LCDWin *lcd, uint8_t cols, uint8_t rows)
+: _lcd(lcd),
+	_cols(cols),
+	_rows(rows)
+{
+	assert(_lcd != NULL);
+	assert(_cols > 0);
+	assert(_rows > 0);
+	_lcd->begin(cols, rows);
+}
+
+///////////////////////////////////////////////////////////////////////////
 // Property
 ///////////////////////////////////////////////////////////////////////////
 
@@ -83,27 +98,22 @@ Property::Property(const __FlashStringHelper *name, uint8_t maxFocusParts)
 void Property::nextFocusPart()
 {
 	_focusPart++;
-	if (_focusPart == _maxFocusParts) {
+	if (_focusPart > _maxFocusParts) {
 		_focusPart = 0;
 		onExitEdit();
 	}
 }
 
-void Property::paintLabel(LCD *lcd, const PaintPos *pos) const
+void Property::paintLabel(LCDWin *lcd) const
 {
 	assert(lcd != NULL);
-	assert(pos != NULL);
-	lcd->setCursor(pos->lblCol, pos->row);
 	lcd->print(_name);
 }
 
-void Property::enterEdit(LCD *lcd, const PaintPos *pos)
+void Property::enterEdit()
 {
-	assert(lcd != NULL);
-	assert(pos != NULL);
 	onEnterEdit();
 	_focusPart = 1;
-	paintEdit(lcd, pos);
 }
 
 void Property::onEnterEdit()
@@ -135,11 +145,10 @@ void PropertyTime::onEnterEdit()
 	}
 }
 
-void PropertyTime::paintEdit(LCD *lcd, const PaintPos *pos) const
+void PropertyTime::paintEdit(LCDWin *lcd) const
 {
 	assert(lcd != NULL);
-	assert(pos != NULL);
-	assert(getFocusPart() < 2);
+	assert(getFocusPart() <= 2);
 	uint8_t focusPart = getFocusPart();
 	lcd->print(focusPart == 1 ? SEL_LEFT : ' ' );
 	pad00Print(lcd, _var->hour);
@@ -161,7 +170,7 @@ void PropertyTime::paintEdit(LCD *lcd, const PaintPos *pos) const
 bool PropertyTime::processEditInput(ButtonPress button)
 {
 	uint8_t focusPart = getFocusPart();
-	assert(0 < focusPart && focusPart < 2);
+	assert(0 < focusPart && focusPart <= 2);
 	if (button == BUTTON_PRESS_DOWN) {
 		if (focusPart == 1) {
 			wrapDecrease<uint8_t>(&_var->hour, 0, 23);
@@ -209,11 +218,10 @@ void PropertyDate::onExitEdit()
 	// TODO: adjust date to a correct value
 }
 
-void PropertyDate::paintEdit(LCD *lcd, const PaintPos *pos) const
+void PropertyDate::paintEdit(LCDWin *lcd) const
 {
 	assert(lcd != NULL);
-	assert(pos != NULL);
-	assert(getFocusPart() < 3);
+	assert(getFocusPart() <= 3);
 	uint8_t focusPart = getFocusPart();
 	lcd->print(focusPart == 1 ? SEL_LEFT : ' ' );
 	pad00Print(lcd, _var->day);
@@ -248,7 +256,7 @@ void PropertyDate::paintEdit(LCD *lcd, const PaintPos *pos) const
 bool PropertyDate::processEditInput(ButtonPress button)
 {
 	uint8_t focusPart = getFocusPart();
-	assert(0 < focusPart && focusPart < 4);
+	assert(0 < focusPart && focusPart <= 3);
 	if (button == BUTTON_PRESS_DOWN) {
 		if (focusPart == 1) {
 			wrapDecrease<uint8_t>(&_var->day, 1, 31);
@@ -314,11 +322,10 @@ void PropertyU16::onEnterEdit()
 	clipValue(_var, _limitMin, _limitMax);
 }
 
-void PropertyU16::paintEdit(LCD *lcd, const PaintPos *pos) const
+void PropertyU16::paintEdit(LCDWin *lcd) const
 {
 	assert(lcd != NULL);
-	assert(pos != NULL);
-	assert(getFocusPart() < 3);
+	assert(getFocusPart() <= 1);
 
 	uint8_t focusPart = getFocusPart();
 	lcd->print(focusPart == 1 ? SEL_LEFT : ' ' );
@@ -353,7 +360,7 @@ PropertyBool::PropertyBool(const __FlashStringHelper *name, bool *var)
 	assert(var != NULL);
 }
 
-void PropertyBool::paintEdit(LCD *lcd, const PaintPos *pos) const
+void PropertyBool::paintEdit(LCDWin *lcd) const
 {
 	assert(0);
 }
@@ -375,7 +382,7 @@ PropertyAction::PropertyAction(const __FlashStringHelper *name, Callback callbac
 	assert(callback != NULL);
 }
 
-void PropertyAction::paintEdit(LCD *lcd, const PaintPos *pos) const
+void PropertyAction::paintEdit(LCDWin *lcd) const
 {
 	assert(0);
 }
@@ -390,22 +397,100 @@ bool PropertyAction::processEditInput(ButtonPress button)
 // PropertyPage
 ///////////////////////////////////////////////////////////////////////////
 
-PropertyPage::PropertyPage(Property *propertiesAry[], Callback beforeShowing)
-: _propertiesAry(propertiesAry[0]),
+PropertyPage::PropertyPage(uint8_t rows, Property **propertiesAry, Callback beforeShowing)
+: _rows(rows),
+	_topIndex(0),
+	_cursorRow(0),
+	_propertiesAry(propertiesAry),
 	_beforeShowing(beforeShowing),
-	_topIndex(0)
+	_maxPropNameLen(0)
 {
-	assert(propertiesAry != NULL);		
+	assert(propertiesAry != NULL);
+	assert(propertiesAry[0] != NULL);
+	assert(rows > 0);
+	size_t maxLen = 0;
+	for (uint8_t i = 0; ; ++i) {
+		const Property *p = _propertiesAry[i];
+		if (p == NULL) {
+			break;
+		}
+		size_t l = strlen(reinterpret_cast<const char *>(p->getName()));
+		if (l > maxLen) {
+			maxLen = l;
+		}
+	}
+	_maxPropNameLen = static_cast<uint8_t>(maxLen);
 }
 
-void PropertyPage::paint(LCD *lcd) const
+void PropertyPage::paint(Screen *screen) const
 {
-	assert(0);
+	assert(screen != NULL);
+	LCDWin *lcd = screen->getLcd();
+	lcd->clear();
+	for (uint8_t i = 0; i < screen->getRows(); ++i) {
+		Property *p = _propertiesAry[_topIndex + i];
+		if (p != NULL) {
+			lcd->setCursor(1, i);
+			p->paintLabel(lcd);
+			lcd->setCursor(_maxPropNameLen + 2, i);
+			p->paintEdit(lcd);
+		}
+	}
+	paintCursor(screen);
 }
 
-bool PropertyPage::buttonInput(ButtonPress button)
+void PropertyPage::buttonInput(ButtonPress button, Screen *screen)
 {
-	assert(0);
-	return false;
+	assert(screen != NULL);
+	Property *p = _propertiesAry[_topIndex + _cursorRow];
+	LCDWin *lcd = screen->getLcd();
+	bool editMode = p->getFocusPart() != 0;
+	if (editMode) {
+		if (p->processEditInput(button)) {
+			lcd->setCursor(_maxPropNameLen + 2, _cursorRow);
+			p->paintEdit(lcd);
+		}
+	} else {
+		switch (button) {
+			case BUTTON_PRESS_ENTER:
+				p->enterEdit();
+				lcd->setCursor(_maxPropNameLen + 2, _cursorRow);
+				p->paintEdit(lcd);
+				break;
+			case BUTTON_PRESS_DOWN:
+				if ( _propertiesAry[_topIndex + _cursorRow + 1] != NULL) {
+					if (_cursorRow < screen->getRows() - 1) {
+						_cursorRow++;
+						paintCursor(screen);
+					} else {
+						_topIndex++;
+						paint(screen);
+					}
+				}
+				break;
+			case BUTTON_PRESS_UP:
+				if (_topIndex + _cursorRow > 0) {
+					if (_cursorRow < screen->getRows() - 1) {
+						_topIndex--;
+						paint(screen);
+					} else {
+						_cursorRow--;
+						paintCursor(screen);
+					}
+				}
+				break;
+			default:
+				break;
+		}
+	}
 }
 
+void PropertyPage::paintCursor(Screen *screen) const
+{
+	assert(screen != NULL);
+	LCDWin *lcd = screen->getLcd();
+	for (uint8_t i = 0; i < screen->getRows(); ++i) {
+		lcd->setCursor(0, i);
+		lcd->print(_cursorRow == i ? '>' : ' ');
+	}
+}

@@ -1,16 +1,19 @@
 #ifndef PROPERTY_MENU_H_
 #define PROPERTY_MENU_H_
 
+//#define NDEBUG
 #include <assert.h>
 #include <stdlib.h>
 #include <stdint.h>
 
 #include "WString.h"
-#include "LiquidCrystal.h"
+#include "LCDWin.h"
 
 typedef void (*Callback)(void);
 
 enum ButtonPress {
+	BUTTON_PRESS_NONE = -1,
+
 	BUTTON_PRESS_DOWN,
 	BUTTON_PRESS_UP,
 	BUTTON_PRESS_ENTER,
@@ -18,6 +21,25 @@ enum ButtonPress {
 	BUTTON_PRESS_COUNT
 };
 
+
+///////////////////////////////////////////////////////////////////////////
+// Screen
+///////////////////////////////////////////////////////////////////////////
+
+class Screen
+{
+public:
+	Screen(LCDWin *lcd, uint8_t cols, uint8_t rows);
+	
+	LCDWin *getLcd() const { return _lcd; }
+	uint8_t getCols() const { return _cols; }
+	uint8_t getRows() const { return _rows; }
+
+private:
+	LCDWin *_lcd;
+	uint8_t _cols;
+	uint8_t _rows;
+};
 
 ///////////////////////////////////////////////////////////////////////////
 // Property
@@ -29,19 +51,15 @@ public:
 	enum {
 		INVALID_ROW = 0xff
 	};
-	struct PaintPos {
-		uint8_t row;
-		uint8_t lblCol;
-		uint8_t edtCol;
-	};
+	const __FlashStringHelper *getName() const { return _name; }
 	uint8_t getFocusPart() const { return _focusPart; }
 	void nextFocusPart();
-	void paintLabel(LCD *lcd, const PaintPos *pos) const;
-	void enterEdit(LCD *lcd, const PaintPos *pos);
+	void paintLabel(LCDWin *lcd) const;
+	void enterEdit();
 
 	virtual void onEnterEdit();
 	virtual void onExitEdit();
-	virtual void paintEdit(LCD *lcd, const PaintPos *pos) const = 0;
+	virtual void paintEdit(LCDWin *lcd) const = 0;
 	virtual bool processEditInput(ButtonPress button) = 0; // true if it needs redraw
 
 protected:
@@ -67,7 +85,7 @@ public:
 	};
 	PropertyTime(const __FlashStringHelper *name, Time *var);
 	void onEnterEdit();
-	void paintEdit(LCD *lcd, const PaintPos *pos) const;
+	void paintEdit(LCDWin *lcd) const;
 	bool processEditInput(ButtonPress button);
 
 private:
@@ -90,7 +108,7 @@ public:
 	PropertyDate(const __FlashStringHelper *name, Date *var);
 	void onEnterEdit();
 	void onExitEdit();
-	void paintEdit(LCD *lcd, const PaintPos *pos) const;
+	void paintEdit(LCDWin *lcd) const;
 	bool processEditInput(ButtonPress button);
 
 private:
@@ -99,7 +117,7 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////
-// PropertyU8
+// PropertyU16
 ///////////////////////////////////////////////////////////////////////////
 
 class PropertyU16: public Property
@@ -107,7 +125,7 @@ class PropertyU16: public Property
 public:
 	PropertyU16(const __FlashStringHelper *name, uint16_t *var, uint16_t limitMin, uint16_t limitMax);
 	void onEnterEdit();
-	void paintEdit(LCD *lcd, const PaintPos *pos) const;
+	void paintEdit(LCDWin *lcd) const;
 	bool processEditInput(ButtonPress button);
 
 private:
@@ -125,7 +143,7 @@ class PropertyBool: public Property
 {
 public:
 	PropertyBool(const __FlashStringHelper *name, bool *var);
-	void paintEdit(LCD *lcd, const PaintPos *pos) const;
+	void paintEdit(LCDWin *lcd) const;
 	bool processEditInput(ButtonPress button);
 private:
 	bool *_var;
@@ -140,11 +158,13 @@ class PropertyAction: public Property
 {
 public:
 	PropertyAction(const __FlashStringHelper *name, Callback callback);
-	void paintEdit(LCD *lcd, const PaintPos *pos) const;
+	void paintEdit(LCDWin *lcd) const;
 	bool processEditInput(ButtonPress button);
 private:
 	Callback _callback;
 };
+
+
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -154,8 +174,8 @@ private:
 class Page
 {
 public:
-	virtual void paint(LCD *lcd) const = 0;
-	virtual bool buttonInput(ButtonPress button) = 0;
+	virtual void paint(Screen *screen) const = 0;
+	virtual void buttonInput(ButtonPress button, Screen *screen) = 0;
 };
 
 
@@ -166,15 +186,18 @@ public:
 class PropertyPage: public Page
 {
 public:
-	PropertyPage(Property *propertiesAry[], Callback beforeShowing=NULL);
-	void paint(LCD *lcd) const;
-	bool buttonInput(ButtonPress button);
+	PropertyPage(uint8_t rows, Property *propertiesAry[], Callback beforeShowing=NULL);
+	void paint(Screen *screen) const;
+	void buttonInput(ButtonPress button, Screen *screen);
+	void paintCursor(Screen *screen) const;
 
 private:
-	Property *_propertiesAry;
-	Callback _beforeShowing;
-	uint8_t _editCol;
+	uint8_t _rows;
 	uint8_t _topIndex;
+	uint8_t _cursorRow;
+	Property **_propertiesAry;
+	Callback _beforeShowing;
+	uint8_t _maxPropNameLen;
 };
 
 

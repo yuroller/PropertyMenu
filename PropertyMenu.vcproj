@@ -21,7 +21,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="mock;c9x"
+				AdditionalIncludeDirectories="mock;c9x;jlib"
 				PreprocessorDefinitions="ARDUINO=103;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -93,7 +93,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -115,7 +115,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="mock;c9x"
+				AdditionalIncludeDirectories="mock;c9x;jlib"
 				PreprocessorDefinitions="ARDUINO=103;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -207,19 +207,11 @@
 			Name="mock"
 			>
 			<File
-				RelativePath=".\mock\LCD.cpp"
+				RelativePath=".\mock\LCDWin.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\mock\LCD.h"
-				>
-			</File>
-			<File
-				RelativePath=".\mock\LiquidCrystal.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\mock\LiquidCrystal.h"
+				RelativePath=".\mock\LCDWin.h"
 				>
 			</File>
 			<File
@@ -240,6 +232,62 @@
 			</File>
 			<File
 				RelativePath=".\mock\WString.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="jlib"
+			>
+			<File
+				RelativePath=".\jlib\CharacterBox.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\jlib\CharacterBox.h"
+				>
+			</File>
+			<File
+				RelativePath=".\jlib\CodeFinder.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\jlib\CodeFinder.h"
+				>
+			</File>
+			<File
+				RelativePath=".\jlib\ConsoleCore.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\jlib\ConsoleCore.h"
+				>
+			</File>
+			<File
+				RelativePath=".\jlib\ConsoleDefinitions.h"
+				>
+			</File>
+			<File
+				RelativePath=".\jlib\ConsoleFormat.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\jlib\ConsoleFormat.h"
+				>
+			</File>
+			<File
+				RelativePath=".\jlib\ConsoleMenu.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\jlib\ConsoleMenu.h"
+				>
+			</File>
+			<File
+				RelativePath=".\jlib\ConsoleMenuItem.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\jlib\ConsoleMenuItem.h"
 				>
 			</File>
 		</Filter>
