@@ -21,6 +21,8 @@ MakeFlashString(LBL_TIME_START, "Time start");
 MakeFlashString(LBL_TIME_END, "Time end");
 MakeFlashString(LBL_WEEKLY, "Weekly");
 MakeFlashString(LBL_APPLY, "Apply");
+MakeFlashString(LBL_CLOCK, "Clock");
+MakeFlashString(LBL_SETTINGS, "Settings");
 
 // settings
 PropertyTime::Time clockTime;
@@ -70,6 +72,17 @@ Property *recordingProperties[] = {
 
 PropertyPage recordingPropPage(recordingProperties);
 
+PropertyMenu settingsPropMenu(LBL_CLOCK, NULL);
+PropertyMenu recordingPropMenu(LBL_SETTINGS, NULL);
+
+Property *menuProperties[] = {
+	&settingsPropMenu,
+	&recordingPropMenu,
+	NULL
+};
+
+PropertyPage menuPropPage(menuProperties);
+
 //RecListPage recListPage(&recordingPropPage);
 
 // menu
@@ -79,6 +92,7 @@ PropertyPage *propertyPages[] = {
 	&recordingPropPage,
 	NULL
 };
+
 
 //Menu menu(propertyPages);
 
@@ -113,7 +127,7 @@ int main(int /*argc*/, char* /*argv*/[])
 	LCDWin lcd;
 	Screen screen(&lcd, 24, 2);
 	//PropertyPage *propPage = &settingsPropPage;
-	PropertyPage *propPage = &recordingPropPage;
+	PropertyPage *propPage = &menuPropPage;
 	propPage->paint(&screen);
 
 	for (;;) {

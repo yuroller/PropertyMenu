@@ -393,6 +393,34 @@ bool PropertyAction::processEditInput(ButtonPress button)
 	return false;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+// PropertyMenu
+///////////////////////////////////////////////////////////////////////////
+
+PropertyMenu::PropertyMenu(const __FlashStringHelper *name, Page *page)
+// : Property(name, 0),
+: Property(name, 1),
+	_page(page)
+{
+	//assert(page != NULL);
+}
+
+void PropertyMenu::paintEdit(LCDWin *lcd) const
+{
+	//assert(0);
+}
+
+bool PropertyMenu::processEditInput(ButtonPress button)
+{
+	//assert(0);
+	if (button == BUTTON_PRESS_ENTER) {
+		nextFocusPart();
+	}
+	return false;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////
 // PropertyPage
 ///////////////////////////////////////////////////////////////////////////
