@@ -34,7 +34,7 @@ Property *settingsProperties[] = {
 	NULL
 };
 
-PropertyPage settingsPropPage(2, settingsProperties);
+PropertyPage settingsPropPage(settingsProperties);
 
 // recording
 uint16_t id;
@@ -68,17 +68,19 @@ Property *recordingProperties[] = {
 	NULL
 };
 
-PropertyPage recordingPropPage(2, recordingProperties);
+PropertyPage recordingPropPage(recordingProperties);
+
+//RecListPage recListPage(&recordingPropPage);
 
 // menu
 PropertyPage *propertyPages[] = {
 	&settingsPropPage,
+	//&recListPage,
 	&recordingPropPage,
 	NULL
 };
 
-
-//Menu menu(propertyPages, lcd);
+//Menu menu(propertyPages);
 
 enum Key {
 	KEY_UP = 97,
@@ -114,7 +116,7 @@ int main(int /*argc*/, char* /*argv*/[])
 	PropertyPage *propPage = &recordingPropPage;
 	propPage->paint(&screen);
 
-	while (true) {
+	for (;;) {
 		if (_kbhit()) {
 			int k = _getch();
 			if (k == KEY_ESC) {

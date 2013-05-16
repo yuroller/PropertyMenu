@@ -397,9 +397,8 @@ bool PropertyAction::processEditInput(ButtonPress button)
 // PropertyPage
 ///////////////////////////////////////////////////////////////////////////
 
-PropertyPage::PropertyPage(uint8_t rows, Property **propertiesAry, Callback beforeShowing)
-: _rows(rows),
-	_topIndex(0),
+PropertyPage::PropertyPage(Property **propertiesAry, Callback beforeShowing)
+: _topIndex(0),
 	_cursorRow(0),
 	_propertiesAry(propertiesAry),
 	_beforeShowing(beforeShowing),
@@ -407,7 +406,6 @@ PropertyPage::PropertyPage(uint8_t rows, Property **propertiesAry, Callback befo
 {
 	assert(propertiesAry != NULL);
 	assert(propertiesAry[0] != NULL);
-	assert(rows > 0);
 	size_t maxLen = 0;
 	for (uint8_t i = 0; ; ++i) {
 		const Property *p = _propertiesAry[i];
@@ -439,23 +437,26 @@ void PropertyPage::paint(Screen *screen) const
 	paintCursor(screen);
 }
 
-void PropertyPage::buttonInput(ButtonPress button, Screen *screen)
+bool PropertyPage::buttonInput(ButtonPress button, Screen *screen)
 {
 	assert(screen != NULL);
 	Property *p = _propertiesAry[_topIndex + _cursorRow];
 	LCDWin *lcd = screen->getLcd();
+	bool res = false;
 	bool editMode = p->getFocusPart() != 0;
 	if (editMode) {
 		if (p->processEditInput(button)) {
 			lcd->setCursor(_maxPropNameLen + 2, _cursorRow);
 			p->paintEdit(lcd);
 		}
+		res = true;
 	} else {
 		switch (button) {
 			case BUTTON_PRESS_ENTER:
 				p->enterEdit();
 				lcd->setCursor(_maxPropNameLen + 2, _cursorRow);
 				p->paintEdit(lcd);
+				res = true;
 				break;
 			case BUTTON_PRESS_DOWN:
 				if ( _propertiesAry[_topIndex + _cursorRow + 1] != NULL) {
@@ -467,6 +468,7 @@ void PropertyPage::buttonInput(ButtonPress button, Screen *screen)
 						paint(screen);
 					}
 				}
+				res = true;
 				break;
 			case BUTTON_PRESS_UP:
 				if (_topIndex + _cursorRow > 0) {
@@ -478,11 +480,13 @@ void PropertyPage::buttonInput(ButtonPress button, Screen *screen)
 						paintCursor(screen);
 					}
 				}
+				res = true;
 				break;
 			default:
 				break;
 		}
 	}
+	return res;
 }
 
 void PropertyPage::paintCursor(Screen *screen) const

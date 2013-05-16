@@ -17,6 +17,7 @@ enum ButtonPress {
 	BUTTON_PRESS_DOWN,
 	BUTTON_PRESS_UP,
 	BUTTON_PRESS_ENTER,
+	BUTTON_PRESS_ESC,
 
 	BUTTON_PRESS_COUNT
 };
@@ -48,9 +49,6 @@ private:
 class Property
 {
 public:
-	enum {
-		INVALID_ROW = 0xff
-	};
 	const __FlashStringHelper *getName() const { return _name; }
 	uint8_t getFocusPart() const { return _focusPart; }
 	void nextFocusPart();
@@ -175,7 +173,7 @@ class Page
 {
 public:
 	virtual void paint(Screen *screen) const = 0;
-	virtual void buttonInput(ButtonPress button, Screen *screen) = 0;
+	virtual bool buttonInput(ButtonPress button, Screen *screen) = 0;
 };
 
 
@@ -186,13 +184,12 @@ public:
 class PropertyPage: public Page
 {
 public:
-	PropertyPage(uint8_t rows, Property *propertiesAry[], Callback beforeShowing=NULL);
+	explicit PropertyPage(Property *propertiesAry[], Callback beforeShowing=NULL);
 	void paint(Screen *screen) const;
-	void buttonInput(ButtonPress button, Screen *screen);
+	bool buttonInput(ButtonPress button, Screen *screen); // false when control returns to parent menu
 	void paintCursor(Screen *screen) const;
 
 private:
-	uint8_t _rows;
 	uint8_t _topIndex;
 	uint8_t _cursorRow;
 	Property **_propertiesAry;
@@ -208,10 +205,10 @@ private:
 class MenuItem
 {
 public:
-	MenuItem(const __FlashStringHelper *name, PropertyPage *propPage);
+	MenuItem(const __FlashStringHelper *name, Page *page);
 private:
 	const __FlashStringHelper *_name;
-	PropertyPage *_propPage;
+	Page *_page;
 };
 
 #endif // PROPERTY_MENU_H_
