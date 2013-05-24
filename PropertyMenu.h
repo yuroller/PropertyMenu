@@ -17,7 +17,6 @@ enum ButtonPress {
 	BUTTON_PRESS_DOWN,
 	BUTTON_PRESS_UP,
 	BUTTON_PRESS_ENTER,
-	BUTTON_PRESS_ESC,
 
 	BUTTON_PRESS_COUNT
 };
@@ -82,7 +81,6 @@ public:
 		uint8_t mins;
 	};
 	PropertyTime(const __FlashStringHelper *name, Time *var);
-	void onEnterEdit();
 	void paintEdit(LCDWin *lcd) const;
 	bool processEditInput(ButtonPress button);
 
@@ -104,7 +102,6 @@ public:
 		uint8_t day;
 	};
 	PropertyDate(const __FlashStringHelper *name, Date *var);
-	void onEnterEdit();
 	void onExitEdit();
 	void paintEdit(LCDWin *lcd) const;
 	bool processEditInput(ButtonPress button);
@@ -122,7 +119,6 @@ class PropertyU16: public Property
 {
 public:
 	PropertyU16(const __FlashStringHelper *name, uint16_t *var, uint16_t limitMin, uint16_t limitMax);
-	void onEnterEdit();
 	void paintEdit(LCDWin *lcd) const;
 	bool processEditInput(ButtonPress button);
 
@@ -162,24 +158,6 @@ private:
 	Callback _callback;
 };
 
-
-///////////////////////////////////////////////////////////////////////////
-// PropertyMenu
-///////////////////////////////////////////////////////////////////////////
-
-class Page;
-
-class PropertyMenu: public Property
-{
-public:
-	PropertyMenu(const __FlashStringHelper *name, Page *page);
-	void paintEdit(LCDWin *lcd) const;
-	bool processEditInput(ButtonPress button);
-private:
-	Page *_page;
-};
-
-
 ///////////////////////////////////////////////////////////////////////////
 // Page
 ///////////////////////////////////////////////////////////////////////////
@@ -187,29 +165,53 @@ private:
 class Page
 {
 public:
-	virtual void paint(Screen *screen) const = 0;
-	virtual bool buttonInput(ButtonPress button, Screen *screen) = 0;
+	virtual void paint(Screen *screen) const;
+	virtual bool buttonInput(ButtonPress button, Screen *screen); // true if staying in the same page, false when returning to parent
 };
 
+
+///////////////////////////////////////////////////////////////////////////
+// ScrollablePage
+///////////////////////////////////////////////////////////////////////////
+
+class ScrollablePage: public Page
+{
+public:
+	ScrollablePage();
+	uint8_t getCursorRow() const { return _cursorRow; }
+	void setMaxLines(uint8_t maxLines);
+	void paint(Screen *screen) const;
+	bool buttonInput(ButtonPress button, Screen *screen);
+	void paintCursor(Screen *screen) const;
+	virtual void paintLine(uint8_t line, uint8_t row, Screen *screen) const = 0;
+	virtual void focusLine(uint8_t line) = 0;
+
+private:
+	uint8_t _maxLines;
+	uint8_t _topIndex;
+	uint8_t _cursorRow;
+};
 
 ///////////////////////////////////////////////////////////////////////////
 // PropertyPage
 ///////////////////////////////////////////////////////////////////////////
 
-class PropertyPage: public Page
+class PropertyPage: public ScrollablePage
 {
 public:
+	enum {
+		INVALID_LINE = 0xff
+	};
 	explicit PropertyPage(Property *propertiesAry[], Callback beforeShowing=NULL);
-	void paint(Screen *screen) const;
-	bool buttonInput(ButtonPress button, Screen *screen); // false when control returns to parent menu
-	void paintCursor(Screen *screen) const;
+	bool buttonInput(ButtonPress button, Screen *screen);
+	void paintLine(uint8_t line, uint8_t row, Screen *screen) const;
+	void focusLine(uint8_t line);
 
 private:
-	uint8_t _topIndex;
-	uint8_t _cursorRow;
 	Property **_propertiesAry;
 	Callback _beforeShowing;
 	uint8_t _maxPropNameLen;
+	uint8_t _focusLine;
 };
 
 

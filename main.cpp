@@ -72,17 +72,6 @@ Property *recordingProperties[] = {
 
 PropertyPage recordingPropPage(recordingProperties);
 
-PropertyMenu settingsPropMenu(LBL_CLOCK, NULL);
-PropertyMenu recordingPropMenu(LBL_SETTINGS, NULL);
-
-Property *menuProperties[] = {
-	&settingsPropMenu,
-	&recordingPropMenu,
-	NULL
-};
-
-PropertyPage menuPropPage(menuProperties);
-
 //RecListPage recListPage(&recordingPropPage);
 
 // menu
@@ -97,8 +86,8 @@ PropertyPage *propertyPages[] = {
 //Menu menu(propertyPages);
 
 enum Key {
-	KEY_UP = 97,
-	KEY_DOWN = 122,
+	KEY_UP = 'w',
+	KEY_DOWN = 's',
 	KEY_ENTER = 13,
 	KEY_ESC = 27
 };
@@ -126,8 +115,7 @@ int main(int /*argc*/, char* /*argv*/[])
 {
 	LCDWin lcd;
 	Screen screen(&lcd, 24, 2);
-	//PropertyPage *propPage = &settingsPropPage;
-	PropertyPage *propPage = &menuPropPage;
+	PropertyPage *propPage = &settingsPropPage;
 	propPage->paint(&screen);
 
 	for (;;) {

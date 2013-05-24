@@ -133,10 +133,6 @@ PropertyTime::PropertyTime(const __FlashStringHelper *name, PropertyTime::Time *
 	_var(var)
 {
 	assert(var != NULL);
-}
-
-void PropertyTime::onEnterEdit()
-{
 	if (_var->hour > 23) {
 		_var->hour = 23;
 	}
@@ -202,10 +198,6 @@ PropertyDate::PropertyDate(const __FlashStringHelper *name, PropertyDate::Date *
 	_var(var)
 {
 	assert(var != NULL);
-}
-
-void PropertyDate::onEnterEdit()
-{
 	clipValue<uint8_t>(&_var->day, 1, 31);
 	clipValue<uint8_t>(&_var->month, 1, 12);
 	if (_var->year2000 > 99) {
@@ -315,10 +307,6 @@ PropertyU16::PropertyU16(const __FlashStringHelper *name, uint16_t *var, uint16_
 			break;
 		}
 	}
-}
-
-void PropertyU16::onEnterEdit()
-{
 	clipValue(_var, _limitMin, _limitMax);
 }
 
@@ -393,131 +381,100 @@ bool PropertyAction::processEditInput(ButtonPress button)
 	return false;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-// PropertyMenu
+///////////////////////////////////////////////////////////////////////////
+// Page
 ///////////////////////////////////////////////////////////////////////////
 
-PropertyMenu::PropertyMenu(const __FlashStringHelper *name, Page *page)
-// : Property(name, 0),
-: Property(name, 1),
-	_page(page)
+void Page::paint(Screen *screen) const
 {
-	//assert(page != NULL);
+	assert(screen != NULL);
+	screen->getLcd()->clear();
 }
 
-void PropertyMenu::paintEdit(LCDWin *lcd) const
+bool Page::buttonInput(ButtonPress /*button*/, Screen * /*screen*/)
 {
-	//assert(0);
+	return true;
 }
-
-bool PropertyMenu::processEditInput(ButtonPress button)
-{
-	//assert(0);
-	if (button == BUTTON_PRESS_ENTER) {
-		nextFocusPart();
-	}
-	return false;
-}
-
 
 ///////////////////////////////////////////////////////////////////////////
-// PropertyPage
+// ScrollablePage
 ///////////////////////////////////////////////////////////////////////////
 
-PropertyPage::PropertyPage(Property **propertiesAry, Callback beforeShowing)
-: _topIndex(0),
-	_cursorRow(0),
-	_propertiesAry(propertiesAry),
-	_beforeShowing(beforeShowing),
-	_maxPropNameLen(0)
+ScrollablePage::ScrollablePage()
+: _maxLines(0),
+	_topIndex(0),
+	_cursorRow(0)
 {
-	assert(propertiesAry != NULL);
-	assert(propertiesAry[0] != NULL);
-	size_t maxLen = 0;
-	for (uint8_t i = 0; ; ++i) {
-		const Property *p = _propertiesAry[i];
-		if (p == NULL) {
-			break;
-		}
-		size_t l = strlen(reinterpret_cast<const char *>(p->getName()));
-		if (l > maxLen) {
-			maxLen = l;
-		}
-	}
-	_maxPropNameLen = static_cast<uint8_t>(maxLen);
 }
 
-void PropertyPage::paint(Screen *screen) const
+void ScrollablePage::setMaxLines(uint8_t maxLines)
+{
+	assert(_maxLines == 0);
+	_maxLines = maxLines;
+}
+
+void ScrollablePage::paint(Screen *screen) const
 {
 	assert(screen != NULL);
 	LCDWin *lcd = screen->getLcd();
 	lcd->clear();
 	for (uint8_t i = 0; i < screen->getRows(); ++i) {
-		Property *p = _propertiesAry[_topIndex + i];
-		if (p != NULL) {
+		uint8_t idx = _topIndex + i;
+		if (idx == 0) {
 			lcd->setCursor(1, i);
-			p->paintLabel(lcd);
-			lcd->setCursor(_maxPropNameLen + 2, i);
-			p->paintEdit(lcd);
+			lcd->print(PREV_MENU);
+		} else {
+			uint8_t line = idx - 1;
+			if (line < _maxLines) {
+				paintLine(line, _cursorRow, screen);
+			}
 		}
 	}
 	paintCursor(screen);
 }
 
-bool PropertyPage::buttonInput(ButtonPress button, Screen *screen)
+bool ScrollablePage::buttonInput(ButtonPress button, Screen *screen)
 {
 	assert(screen != NULL);
-	Property *p = _propertiesAry[_topIndex + _cursorRow];
-	LCDWin *lcd = screen->getLcd();
-	bool res = false;
-	bool editMode = p->getFocusPart() != 0;
-	if (editMode) {
-		if (p->processEditInput(button)) {
-			lcd->setCursor(_maxPropNameLen + 2, _cursorRow);
-			p->paintEdit(lcd);
-		}
-		res = true;
-	} else {
-		switch (button) {
-			case BUTTON_PRESS_ENTER:
-				p->enterEdit();
-				lcd->setCursor(_maxPropNameLen + 2, _cursorRow);
-				p->paintEdit(lcd);
-				res = true;
-				break;
-			case BUTTON_PRESS_DOWN:
-				if ( _propertiesAry[_topIndex + _cursorRow + 1] != NULL) {
-					if (_cursorRow < screen->getRows() - 1) {
-						_cursorRow++;
-						paintCursor(screen);
-					} else {
-						_topIndex++;
-						paint(screen);
-					}
+	uint8_t idx = _topIndex + _cursorRow;
+	switch (button) {
+		case BUTTON_PRESS_ENTER:
+			if (idx == 0) {
+				return false;
+			} else {
+				focusLine(idx - 1);
+				paintLine(idx - 1, _cursorRow, screen);
+			}
+			break;
+		case BUTTON_PRESS_DOWN:
+			if (idx < _maxLines) {
+				if (_cursorRow < screen->getRows() - 1) {
+					_cursorRow++;
+					paintCursor(screen);
+				} else {
+					_topIndex++;
+					paint(screen);
 				}
-				res = true;
-				break;
-			case BUTTON_PRESS_UP:
-				if (_topIndex + _cursorRow > 0) {
-					if (_cursorRow < screen->getRows() - 1) {
-						_topIndex--;
-						paint(screen);
-					} else {
-						_cursorRow--;
-						paintCursor(screen);
-					}
+			}
+			break;
+		case BUTTON_PRESS_UP:
+			if (_topIndex + _cursorRow > 0) {
+				if (_cursorRow < screen->getRows() - 1) {
+					_topIndex--;
+					paint(screen);
+				} else {
+					_cursorRow--;
+					paintCursor(screen);
 				}
-				res = true;
-				break;
-			default:
-				break;
-		}
+			}
+			break;
+		default:
+			break;
 	}
-	return res;
+	return true;
 }
 
-void PropertyPage::paintCursor(Screen *screen) const
+void ScrollablePage::paintCursor(Screen *screen) const
 {
 	assert(screen != NULL);
 	LCDWin *lcd = screen->getLcd();
@@ -525,4 +482,68 @@ void PropertyPage::paintCursor(Screen *screen) const
 		lcd->setCursor(0, i);
 		lcd->print(_cursorRow == i ? '>' : ' ');
 	}
+}
+
+///////////////////////////////////////////////////////////////////////////
+// PropertyPage
+///////////////////////////////////////////////////////////////////////////
+
+PropertyPage::PropertyPage(Property **propertiesAry, Callback beforeShowing)
+: _propertiesAry(propertiesAry),
+	_beforeShowing(beforeShowing),
+	_maxPropNameLen(0),
+	_focusLine(INVALID_LINE)
+{
+	assert(propertiesAry != NULL);
+	assert(propertiesAry[0] != NULL);
+	size_t maxLen = strlen(PREV_MENU);
+	uint8_t i = 0;
+	const Property *p = _propertiesAry[0];
+	while (p != NULL) {
+		size_t l = strlen(reinterpret_cast<const char *>(p->getName()));
+		if (l > maxLen) {
+			maxLen = l;
+		}
+		i++;
+		p = _propertiesAry[i];
+	}
+	_maxPropNameLen = static_cast<uint8_t>(maxLen);
+	setMaxLines(i);
+}
+
+bool PropertyPage::buttonInput(ButtonPress button, Screen *screen)
+{
+	assert(screen != NULL);
+	if (_focusLine == INVALID_LINE) {
+		return ScrollablePage::buttonInput(button, screen);
+	}
+	Property *p = _propertiesAry[_focusLine];
+	LCDWin *lcd = screen->getLcd();
+	assert(p->getFocusPart() != 0);
+	if (p->processEditInput(button)) {
+		screen->getLcd()->setCursor(_maxPropNameLen + 2, getCursorRow());
+		p->paintEdit(lcd);
+	}
+	return p->getFocusPart() != 0;
+}
+
+
+void PropertyPage::paintLine(uint8_t line, uint8_t row, Screen *screen) const
+{
+	assert(screen != NULL);
+	Property *p = _propertiesAry[line];
+	if (p != NULL) {
+		LCDWin *lcd = screen->getLcd();
+		lcd->setCursor(1, row);
+		p->paintLabel(lcd);
+		lcd->setCursor(_maxPropNameLen + 2, row);
+		p->paintEdit(lcd);
+	}
+}
+
+void PropertyPage::focusLine(uint8_t line)
+{
+	Property *p = _propertiesAry[line];
+	p->enterEdit();
+	_focusLine = line;
 }
