@@ -61,12 +61,12 @@ PropertyAction recordingApplyProp(LBL_APPLY, recordingApply);
 
 Property *recordingProperties[] = {
 	&idProp,
-//	&activeProp,
+	&activeProp,
 	&programProp,
 	&dateStartProp,
 	&timeStartProp,
 	&timeEndProp,
-//	&weeklyProp,
+	&weeklyProp,
 	NULL
 };
 
@@ -117,6 +117,7 @@ public:
 	explicit NumberedPage(uint8_t maxLines);
 	void paintLine(uint8_t line, uint8_t row, Screen *screen) const;
 	void focusLine(uint8_t line);
+	// TODO: lastSelectedEntry()
 };
 
 NumberedPage::NumberedPage(uint8_t maxLines)
@@ -141,7 +142,8 @@ int main(int /*argc*/, char* /*argv*/[])
 {
 	LCDWin lcd;
 	Screen screen(&lcd, 24, 2);
-	PropertyPage *propPage = &settingsPropPage;
+	//PropertyPage *propPage = &settingsPropPage;
+	Page *propPage = &recordingPropPage;
 	propPage->paint(&screen);
 	//NumberedPage numPage(10);
 	//numPage.paint(&screen);
@@ -154,9 +156,9 @@ int main(int /*argc*/, char* /*argv*/[])
 			}
 			ButtonPress b = translateKey(k);
 			bool ret = propPage->buttonInput(b, &screen);
+			//numPage.buttonInput(b, &screen);
 			//lcd.setCursor(0, 10);
 			//lcd.print(ret ? "T" : "F");
-			//numPage.buttonInput(b, &screen);
 		}
 		Sleep(50);
 	}

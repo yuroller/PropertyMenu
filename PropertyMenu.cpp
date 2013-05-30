@@ -2,6 +2,9 @@
 
 const char SEL_LEFT = '[';
 const char SEL_RIGHT = ']';
+const char CHECKED = 'x';
+const char SPACE = ' ';
+const char CURSOR = '>';
 const char PREV_MENU[] = "..";
 
 static void pad00Print(LCDWin *lcd, uint8_t n)
@@ -146,7 +149,7 @@ void PropertyTime::paintEdit(LCDWin *lcd) const
 	assert(lcd != NULL);
 	assert(getFocusPart() <= 2);
 	uint8_t focusPart = getFocusPart();
-	lcd->print(focusPart == 1 ? SEL_LEFT : ' ' );
+	lcd->print(focusPart == 1 ? SEL_LEFT : SPACE );
 	pad00Print(lcd, _var->hour);
 	switch (focusPart) {
 		case 1:
@@ -160,7 +163,7 @@ void PropertyTime::paintEdit(LCDWin *lcd) const
 			break;
 	}
 	pad00Print(lcd, _var->mins);
-	lcd->print(focusPart == 2 ? SEL_RIGHT : ' ');
+	lcd->print(focusPart == 2 ? SEL_RIGHT : SPACE);
 }
 
 bool PropertyTime::processEditInput(ButtonPress button)
@@ -215,7 +218,7 @@ void PropertyDate::paintEdit(LCDWin *lcd) const
 	assert(lcd != NULL);
 	assert(getFocusPart() <= 3);
 	uint8_t focusPart = getFocusPart();
-	lcd->print(focusPart == 1 ? SEL_LEFT : ' ' );
+	lcd->print(focusPart == 1 ? SEL_LEFT : SPACE );
 	pad00Print(lcd, _var->day);
 	switch (focusPart) {
 		case 1:
@@ -242,7 +245,7 @@ void PropertyDate::paintEdit(LCDWin *lcd) const
 	}
 	lcd->print("20");
 	pad00Print(lcd, _var->year2000);
-	lcd->print(focusPart == 3 ? SEL_RIGHT : ' ');
+	lcd->print(focusPart == 3 ? SEL_RIGHT : SPACE);
 }
 
 bool PropertyDate::processEditInput(ButtonPress button)
@@ -316,9 +319,9 @@ void PropertyU16::paintEdit(LCDWin *lcd) const
 	assert(getFocusPart() <= 1);
 
 	uint8_t focusPart = getFocusPart();
-	lcd->print(focusPart == 1 ? SEL_LEFT : ' ' );
+	lcd->print(focusPart == 1 ? SEL_LEFT : SPACE);
 	padMulti0Print(lcd, *_var, _displayWidth);
-	lcd->print(focusPart == 1 ? SEL_RIGHT : ' ');
+	lcd->print(focusPart == 1 ? SEL_RIGHT : SPACE);
 }
 
 bool PropertyU16::processEditInput(ButtonPress button)
@@ -350,12 +353,25 @@ PropertyBool::PropertyBool(const __FlashStringHelper *name, bool *var)
 
 void PropertyBool::paintEdit(LCDWin *lcd) const
 {
-	assert(0);
+	assert(lcd != NULL);
+	assert(getFocusPart() <= 1);
+
+	uint8_t focusPart = getFocusPart();
+	lcd->print(focusPart == 1 ? SEL_LEFT : SPACE);
+	lcd->print(*_var ? CHECKED : SPACE);
+	lcd->print(focusPart == 1 ? SEL_RIGHT : SPACE);
 }
 
 bool PropertyBool::processEditInput(ButtonPress button)
 {
-	assert(0);
+	assert(getFocusPart() == 1);
+	if (button == BUTTON_PRESS_DOWN || button == BUTTON_PRESS_UP) {
+		*_var = !*_var;
+		return true;
+	} else if (button == BUTTON_PRESS_ENTER) {
+		nextFocusPart();
+		return true;
+	}
 	return false;
 }
 
@@ -480,7 +496,7 @@ void ScrollablePage::paintCursor(Screen *screen) const
 	LCDWin *lcd = screen->getLcd();
 	for (uint8_t i = 0; i < screen->getRows(); ++i) {
 		lcd->setCursor(COL_CURSOR, i);
-		lcd->print(_cursorRow == i ? '>' : ' ');
+		lcd->print(_cursorRow == i ? CURSOR : SPACE);
 	}
 }
 
