@@ -421,12 +421,12 @@ void ScrollablePage::paint(Screen *screen) const
 	for (uint8_t i = 0; i < screen->getRows(); ++i) {
 		uint8_t idx = _topIndex + i;
 		if (idx == 0) {
-			lcd->setCursor(1, i);
+			lcd->setCursor(COL_CONTENTS, i);
 			lcd->print(PREV_MENU);
 		} else {
 			uint8_t line = idx - 1;
 			if (line < _maxLines) {
-				paintLine(line, _cursorRow, screen);
+				paintLine(line, i, screen);
 			}
 		}
 	}
@@ -479,7 +479,7 @@ void ScrollablePage::paintCursor(Screen *screen) const
 	assert(screen != NULL);
 	LCDWin *lcd = screen->getLcd();
 	for (uint8_t i = 0; i < screen->getRows(); ++i) {
-		lcd->setCursor(0, i);
+		lcd->setCursor(COL_CURSOR, i);
 		lcd->print(_cursorRow == i ? '>' : ' ');
 	}
 }
@@ -524,7 +524,11 @@ bool PropertyPage::buttonInput(ButtonPress button, Screen *screen)
 		screen->getLcd()->setCursor(_maxPropNameLen + 2, getCursorRow());
 		p->paintEdit(lcd);
 	}
-	return p->getFocusPart() != 0;
+	bool hasFocus = p->getFocusPart() != 0;
+	if (!hasFocus) {
+		_focusLine = INVALID_LINE;
+	}
+	return true;
 }
 
 
@@ -534,7 +538,7 @@ void PropertyPage::paintLine(uint8_t line, uint8_t row, Screen *screen) const
 	Property *p = _propertiesAry[line];
 	if (p != NULL) {
 		LCDWin *lcd = screen->getLcd();
-		lcd->setCursor(1, row);
+		lcd->setCursor(COL_CONTENTS, row);
 		p->paintLabel(lcd);
 		lcd->setCursor(_maxPropNameLen + 2, row);
 		p->paintEdit(lcd);

@@ -111,12 +111,40 @@ ButtonPress translateKey(int k)
 	return b;
 }
 
+class NumberedPage : public ScrollablePage
+{
+public:
+	explicit NumberedPage(uint8_t maxLines);
+	void paintLine(uint8_t line, uint8_t row, Screen *screen) const;
+	void focusLine(uint8_t line);
+};
+
+NumberedPage::NumberedPage(uint8_t maxLines)
+{
+	setMaxLines(maxLines);
+}
+
+void NumberedPage::paintLine(uint8_t line, uint8_t row, Screen *screen) const
+{
+	assert(screen != NULL);
+	LCDWin *lcd = screen->getLcd();
+	lcd->setCursor(1, row);
+	lcd->print(line);
+}
+
+void NumberedPage::focusLine(uint8_t line)
+{
+}
+
+
 int main(int /*argc*/, char* /*argv*/[])
 {
 	LCDWin lcd;
 	Screen screen(&lcd, 24, 2);
 	PropertyPage *propPage = &settingsPropPage;
 	propPage->paint(&screen);
+	//NumberedPage numPage(10);
+	//numPage.paint(&screen);
 
 	for (;;) {
 		if (_kbhit()) {
@@ -125,7 +153,10 @@ int main(int /*argc*/, char* /*argv*/[])
 				break;
 			}
 			ButtonPress b = translateKey(k);
-			propPage->buttonInput(b, &screen);
+			bool ret = propPage->buttonInput(b, &screen);
+			//lcd.setCursor(0, 10);
+			//lcd.print(ret ? "T" : "F");
+			//numPage.buttonInput(b, &screen);
 		}
 		Sleep(50);
 	}

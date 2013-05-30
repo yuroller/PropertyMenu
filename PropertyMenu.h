@@ -177,8 +177,13 @@ public:
 class ScrollablePage: public Page
 {
 public:
+	enum {
+		COL_CURSOR = 0,
+		COL_CONTENTS = 1
+	};
 	ScrollablePage();
 	uint8_t getCursorRow() const { return _cursorRow; }
+	uint8_t getMaxLines() const { return _maxLines; }
 	void setMaxLines(uint8_t maxLines);
 	void paint(Screen *screen) const;
 	bool buttonInput(ButtonPress button, Screen *screen);
