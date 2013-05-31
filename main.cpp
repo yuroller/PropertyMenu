@@ -157,8 +157,8 @@ int main(int /*argc*/, char* /*argv*/[])
 			ButtonPress b = translateKey(k);
 			bool ret = propPage->buttonInput(b, &screen);
 			//numPage.buttonInput(b, &screen);
-			//lcd.setCursor(0, 10);
-			//lcd.print(ret ? "T" : "F");
+			lcd.setCursor(0, 10);
+			lcd.print(ret ? "T" : "F");
 		}
 		Sleep(50);
 	}

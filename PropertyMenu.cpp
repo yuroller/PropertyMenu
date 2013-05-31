@@ -2,7 +2,10 @@
 
 const char SEL_LEFT = '[';
 const char SEL_RIGHT = ']';
-const char CHECKED = 'x';
+const char CHECKED = 'v';
+const char UNCHECKED = ' ';
+const char CHK_LEFT = '(';
+const char CHK_RIGHT = ')';
 const char SPACE = ' ';
 const char CURSOR = '>';
 const char PREV_MENU[] = "..";
@@ -358,7 +361,9 @@ void PropertyBool::paintEdit(LCDWin *lcd) const
 
 	uint8_t focusPart = getFocusPart();
 	lcd->print(focusPart == 1 ? SEL_LEFT : SPACE);
-	lcd->print(*_var ? CHECKED : SPACE);
+	lcd->print(CHK_LEFT);
+	lcd->print(*_var ? CHECKED : UNCHECKED);
+	lcd->print(CHK_RIGHT);
 	lcd->print(focusPart == 1 ? SEL_RIGHT : SPACE);
 }
 
