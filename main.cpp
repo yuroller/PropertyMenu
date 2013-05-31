@@ -141,6 +141,7 @@ int main(int /*argc*/, char* /*argv*/[])
 	Screen screen(&lcd, 24, 4);
 	//PropertyPage *propPage = &settingsPropPage;
 	Page *propPage = &recordingPropPage;
+	propPage->reset(); // resets visual state
 	propPage->paint(&screen);
 	//NumberedPage numPage(10);
 	//numPage.paint(&screen);

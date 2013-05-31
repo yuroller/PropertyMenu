@@ -436,6 +436,10 @@ void PropertyAction::onEnterEdit()
 // Page
 ///////////////////////////////////////////////////////////////////////////
 
+void Page::reset()
+{
+}
+
 void Page::paint(Screen *screen) const
 {
 	assert(screen != NULL);
@@ -452,10 +456,15 @@ uint8_t Page::buttonInput(ButtonPress /*button*/, Screen * /*screen*/)
 ///////////////////////////////////////////////////////////////////////////
 
 ScrollablePage::ScrollablePage()
-: _maxLines(0),
-	_topIndex(0),
-	_cursorRow(0)
 {
+	reset();
+}
+
+void ScrollablePage::reset()
+{
+	_maxLines = 0;
+	_topIndex = 0;
+	_cursorRow = 0;
 }
 
 void ScrollablePage::setMaxLines(uint8_t maxLines)
@@ -539,14 +548,13 @@ void ScrollablePage::paintCursor(Screen *screen) const
 // PropertyPage
 ///////////////////////////////////////////////////////////////////////////
 
-PropertyPage::PropertyPage(Property **propertiesAry, Callback beforeShowing)
+PropertyPage::PropertyPage(Property **propertiesAry)
 : _propertiesAry(propertiesAry),
-	_beforeShowing(beforeShowing),
-	_maxPropNameLen(0),
-	_focusLine(INVALID_LINE)
+	_maxPropNameLen(0)
 {
 	assert(propertiesAry != NULL);
 	assert(propertiesAry[0] != NULL);
+	reset();
 	size_t maxLen = strlen(PREV_MENU);
 	uint8_t i = 0;
 	const Property *p = _propertiesAry[0];
@@ -560,6 +568,11 @@ PropertyPage::PropertyPage(Property **propertiesAry, Callback beforeShowing)
 	}
 	_maxPropNameLen = static_cast<uint8_t>(maxLen);
 	setMaxLines(i);
+}
+
+void PropertyPage::reset()
+{
+	_focusLine = INVALID_LINE;
 }
 
 uint8_t PropertyPage::buttonInput(ButtonPress button, Screen *screen)

@@ -178,6 +178,7 @@ public:
 	enum {
 		INVALID_LINE = 0xff
 	};
+	virtual void reset();
 	virtual void paint(Screen *screen) const;
 	// INVALID_LINE if staying in the same page, else the number of last line selected when returning to parent
 	virtual uint8_t buttonInput(ButtonPress button, Screen *screen);
@@ -196,6 +197,7 @@ public:
 		COL_CONTENTS = 1
 	};
 	ScrollablePage();
+	void reset();
 	uint8_t getCursorRow() const { return _cursorRow; }
 	uint8_t getMaxLines() const { return _maxLines; }
 	void setMaxLines(uint8_t maxLines);
@@ -211,6 +213,7 @@ private:
 	uint8_t _cursorRow;
 };
 
+
 ///////////////////////////////////////////////////////////////////////////
 // PropertyPage
 ///////////////////////////////////////////////////////////////////////////
@@ -218,14 +221,14 @@ private:
 class PropertyPage: public ScrollablePage
 {
 public:
-	explicit PropertyPage(Property *propertiesAry[], Callback beforeShowing=NULL);
+	explicit PropertyPage(Property *propertiesAry[]);
+	void reset();
 	uint8_t buttonInput(ButtonPress button, Screen *screen);
 	void paintLine(uint8_t line, uint8_t row, Screen *screen) const;
 	void focusLine(uint8_t line);
 
 private:
 	Property **_propertiesAry;
-	Callback _beforeShowing;
 	uint8_t _maxPropNameLen;
 	uint8_t _focusLine;
 };
