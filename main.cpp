@@ -152,10 +152,10 @@ int main(int /*argc*/, char* /*argv*/[])
 				break;
 			}
 			ButtonPress b = translateKey(k);
-			bool ret = propPage->buttonInput(b, &screen);
+			uint8_t ret = propPage->buttonInput(b, &screen);
 			//numPage.buttonInput(b, &screen);
 			lcd.setCursor(0, 10);
-			lcd.print(ret ? "T" : "F");
+			lcd.print(ret);
 		}
 		Sleep(50);
 	}

@@ -442,9 +442,9 @@ void Page::paint(Screen *screen) const
 	screen->getLcd()->clear();
 }
 
-bool Page::buttonInput(ButtonPress /*button*/, Screen * /*screen*/)
+uint8_t Page::buttonInput(ButtonPress /*button*/, Screen * /*screen*/)
 {
-	return true;
+	return INVALID_LINE;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -484,14 +484,14 @@ void ScrollablePage::paint(Screen *screen) const
 	paintCursor(screen);
 }
 
-bool ScrollablePage::buttonInput(ButtonPress button, Screen *screen)
+uint8_t ScrollablePage::buttonInput(ButtonPress button, Screen *screen)
 {
 	assert(screen != NULL);
 	uint8_t idx = _topIndex + _cursorRow;
 	switch (button) {
 		case BUTTON_PRESS_ENTER:
 			if (idx == 0) {
-				return false;
+				return 0;
 			} else {
 				focusLine(idx - 1);
 				paintLine(idx - 1, _cursorRow, screen);
@@ -522,7 +522,7 @@ bool ScrollablePage::buttonInput(ButtonPress button, Screen *screen)
 		default:
 			break;
 	}
-	return true;
+	return INVALID_LINE;
 }
 
 void ScrollablePage::paintCursor(Screen *screen) const
@@ -562,7 +562,7 @@ PropertyPage::PropertyPage(Property **propertiesAry, Callback beforeShowing)
 	setMaxLines(i);
 }
 
-bool PropertyPage::buttonInput(ButtonPress button, Screen *screen)
+uint8_t PropertyPage::buttonInput(ButtonPress button, Screen *screen)
 {
 	assert(screen != NULL);
 	if (_focusLine == INVALID_LINE) {
@@ -579,7 +579,7 @@ bool PropertyPage::buttonInput(ButtonPress button, Screen *screen)
 	if (!hasFocus) {
 		_focusLine = INVALID_LINE;
 	}
-	return true;
+	return INVALID_LINE;
 }
 
 
