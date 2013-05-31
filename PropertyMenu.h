@@ -9,6 +9,14 @@
 #include "WString.h"
 #include "LCDWin.h"
 
+#ifdef _WIN32
+#define PROGMEM
+#endif
+
+#define MakeFlashString(name, value) \
+  static const char __##name[] PROGMEM = value; \
+  const __FlashStringHelper *name = reinterpret_cast<const __FlashStringHelper *>(__##name);
+
 typedef void (*Callback)(void);
 
 enum ButtonPress {
@@ -154,8 +162,10 @@ public:
 	PropertyAction(const __FlashStringHelper *name, Callback callback);
 	void paintEdit(LCDWin *lcd) const;
 	bool processEditInput(ButtonPress button);
+	void onEnterEdit();
 private:
 	Callback _callback;
+	bool _confirm;
 };
 
 ///////////////////////////////////////////////////////////////////////////

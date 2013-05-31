@@ -5,11 +5,6 @@
 #include <windows.h>
 #include <conio.h>
 
-#define PROGMEM
-
-#define MakeFlashString(name, value) \
-  static const char __##name[] PROGMEM = value; \
-  const __FlashStringHelper *name = reinterpret_cast<const __FlashStringHelper *>(__##name);
 
 // labels
 MakeFlashString(LBL_TIME, "Time");
@@ -47,7 +42,8 @@ PropertyTime::Time timeStart;
 PropertyTime::Time timeEnd;
 bool weekly;
 
-static void recordingApply() {
+static void recordingApply()
+{
 };
 
 PropertyU16 idProp(LBL_ID, &id, 0, 9);
@@ -67,6 +63,7 @@ Property *recordingProperties[] = {
 	&timeStartProp,
 	&timeEndProp,
 	&weeklyProp,
+	&recordingApplyProp,
 	NULL
 };
 
@@ -141,7 +138,7 @@ void NumberedPage::focusLine(uint8_t line)
 int main(int /*argc*/, char* /*argv*/[])
 {
 	LCDWin lcd;
-	Screen screen(&lcd, 24, 2);
+	Screen screen(&lcd, 24, 4);
 	//PropertyPage *propPage = &settingsPropPage;
 	Page *propPage = &recordingPropPage;
 	propPage->paint(&screen);

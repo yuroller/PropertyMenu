@@ -8,6 +8,8 @@ const char CHK_LEFT = '(';
 const char CHK_RIGHT = ')';
 const char SPACE = ' ';
 const char CURSOR = '>';
+const char REPLY_YES = 'Y';
+const char REPLY_NO = 'N';
 const char PREV_MENU[] = "..";
 
 static void pad00Print(LCDWin *lcd, uint8_t n)
@@ -386,20 +388,48 @@ bool PropertyBool::processEditInput(ButtonPress button)
 
 PropertyAction::PropertyAction(const __FlashStringHelper *name, Callback callback)
 : Property(name, 1),
-	_callback(callback)
+	_callback(callback),
+	_confirm(false)
 {
 	assert(callback != NULL);
 }
 
 void PropertyAction::paintEdit(LCDWin *lcd) const
 {
-	assert(0);
+	assert(lcd != NULL);
+	assert(getFocusPart() <= 1);
+
+	uint8_t focusPart = getFocusPart();
+	if (focusPart == 1) {
+		lcd->print(SEL_LEFT);
+		lcd->print(_confirm ? REPLY_YES : REPLY_NO);
+		lcd->print(SEL_RIGHT);
+	} else {
+		lcd->print(SPACE);
+		lcd->print(SPACE);
+		lcd->print(SPACE);
+	}
 }
 
 bool PropertyAction::processEditInput(ButtonPress button)
 {
-	assert(0);
+	assert(getFocusPart() == 1);
+	if (button == BUTTON_PRESS_DOWN || button == BUTTON_PRESS_UP) {
+		_confirm = !_confirm;
+		return true;
+	} else if (button == BUTTON_PRESS_ENTER) {
+		if (_confirm) {
+			_callback();
+		}
+		nextFocusPart();
+		return true;
+	}
 	return false;
+}
+
+void PropertyAction::onEnterEdit()
+{
+	_confirm = false;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -480,7 +510,7 @@ bool ScrollablePage::buttonInput(ButtonPress button, Screen *screen)
 			break;
 		case BUTTON_PRESS_UP:
 			if (_topIndex + _cursorRow > 0) {
-				if (_cursorRow < screen->getRows() - 1) {
+				if (_cursorRow == 0) {
 					_topIndex--;
 					paint(screen);
 				} else {
