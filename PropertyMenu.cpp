@@ -292,7 +292,7 @@ struct LimitWidth {
 	uint8_t width;
 };
 
-static const LimitWidth limitWidth[] = {
+const LimitWidth limitWidth[] = {
 	{ 9999, 5 },
 	{ 999, 4 }, 
 	{ 99, 3 },
@@ -456,13 +456,13 @@ uint8_t Page::buttonInput(ButtonPress /*button*/, Screen * /*screen*/)
 ///////////////////////////////////////////////////////////////////////////
 
 ScrollablePage::ScrollablePage()
+: _maxLines(0)
 {
 	reset();
 }
 
 void ScrollablePage::reset()
 {
-	_maxLines = 0;
 	_topIndex = 0;
 	_cursorRow = 0;
 }
@@ -496,7 +496,7 @@ void ScrollablePage::paint(Screen *screen) const
 uint8_t ScrollablePage::buttonInput(ButtonPress button, Screen *screen)
 {
 	assert(screen != NULL);
-	uint8_t idx = _topIndex + _cursorRow;
+	uint8_t idx = getCurIdx();
 	switch (button) {
 		case BUTTON_PRESS_ENTER:
 			if (idx == 0) {
@@ -518,7 +518,7 @@ uint8_t ScrollablePage::buttonInput(ButtonPress button, Screen *screen)
 			}
 			break;
 		case BUTTON_PRESS_UP:
-			if (_topIndex + _cursorRow > 0) {
+			if (getCurIdx() > 0) {
 				if (_cursorRow == 0) {
 					_topIndex--;
 					paint(screen);
@@ -542,6 +542,10 @@ void ScrollablePage::paintCursor(Screen *screen) const
 		lcd->setCursor(COL_CURSOR, i);
 		lcd->print(_cursorRow == i ? CURSOR : SPACE);
 	}
+}
+
+void ScrollablePage::focusLine(uint8_t /*line*/)
+{
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -614,4 +618,54 @@ void PropertyPage::focusLine(uint8_t line)
 	Property *p = _propertiesAry[line];
 	p->enterEdit();
 	_focusLine = line;
+}
+
+
+///////////////////////////////////////////////////////////////////////////
+// MenuItem
+///////////////////////////////////////////////////////////////////////////
+
+MenuItem::MenuItem(const __FlashStringHelper *name, Page *page)
+: _name(name),
+	_page(page)
+{
+	assert(name != NULL);
+	assert(page != NULL);
+}
+
+
+///////////////////////////////////////////////////////////////////////////
+// MenuItemPage
+///////////////////////////////////////////////////////////////////////////
+
+MenuItemPage::MenuItemPage(MenuItem *menuItemAry[])
+: _menuItemAry(menuItemAry)
+{
+	assert(menuItemAry != NULL);
+	uint8_t i = 0;
+	const MenuItem *p = _menuItemAry[0];
+	while (p != NULL) {
+		i++;
+		p = _menuItemAry[i];
+	}
+	setMaxLines(i);
+}
+
+uint8_t MenuItemPage::buttonInput(ButtonPress button, Screen *screen)
+{
+	if (button == BUTTON_PRESS_ENTER) {
+		return getCurIdx();
+	}
+	return ScrollablePage::buttonInput(button, screen);
+}
+
+void MenuItemPage::paintLine(uint8_t line, uint8_t row, Screen *screen) const
+{
+	assert(screen != NULL);
+	MenuItem *p = _menuItemAry[line];
+	if (p != NULL) {
+		LCDWin *lcd = screen->getLcd();
+		lcd->setCursor(COL_CONTENTS, row);
+		lcd->print(p->getName());
+	}
 }

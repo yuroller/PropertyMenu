@@ -200,12 +200,13 @@ public:
 	void reset();
 	uint8_t getCursorRow() const { return _cursorRow; }
 	uint8_t getMaxLines() const { return _maxLines; }
+	uint8_t getCurIdx() const { return _topIndex + _cursorRow; }
 	void setMaxLines(uint8_t maxLines);
 	void paint(Screen *screen) const;
 	uint8_t buttonInput(ButtonPress button, Screen *screen);
 	void paintCursor(Screen *screen) const;
 	virtual void paintLine(uint8_t line, uint8_t row, Screen *screen) const = 0;
-	virtual void focusLine(uint8_t line) = 0;
+	virtual void focusLine(uint8_t line);
 
 private:
 	uint8_t _maxLines;
@@ -242,9 +243,28 @@ class MenuItem
 {
 public:
 	MenuItem(const __FlashStringHelper *name, Page *page);
+	const __FlashStringHelper *getName() const { return _name; }
+	Page *getPage() const { return _page; }
+
 private:
 	const __FlashStringHelper *_name;
 	Page *_page;
+};
+
+
+///////////////////////////////////////////////////////////////////////////
+// MenuItemPage
+///////////////////////////////////////////////////////////////////////////
+
+class MenuItemPage: public ScrollablePage
+{
+public:
+	explicit MenuItemPage(MenuItem *menuItemAry[]);
+	uint8_t buttonInput(ButtonPress button, Screen *screen);
+	void paintLine(uint8_t line, uint8_t row, Screen *screen) const;
+
+private:
+	MenuItem **_menuItemAry;
 };
 
 #endif // PROPERTY_MENU_H_

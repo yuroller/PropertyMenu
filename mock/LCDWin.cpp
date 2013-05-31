@@ -133,7 +133,7 @@ void LCDWin::noAutoscroll(void)
 }
 
 // Write to CGRAM of new characters
-void LCDWin::createChar(uint8_t location, uint8_t charmap[]) 
+void LCDWin::createChar(uint8_t /* location */, uint8_t /* charmap */[]) 
 {
 }
 

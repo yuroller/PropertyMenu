@@ -18,6 +18,7 @@ MakeFlashString(LBL_WEEKLY, "Weekly");
 MakeFlashString(LBL_APPLY, "Apply");
 MakeFlashString(LBL_CLOCK, "Clock");
 MakeFlashString(LBL_SETTINGS, "Settings");
+MakeFlashString(LBL_RECORDINGS, "Recordings");
 
 // settings
 PropertyTime::Time clockTime;
@@ -71,16 +72,17 @@ PropertyPage recordingPropPage(recordingProperties);
 
 //RecListPage recListPage(&recordingPropPage);
 
+MenuItem menuSettingsItem(LBL_SETTINGS, &settingsPropPage);
+MenuItem menuRecordingItem(LBL_RECORDINGS, &recordingPropPage);
+
 // menu
-PropertyPage *propertyPages[] = {
-	&settingsPropPage,
-	//&recListPage,
-	&recordingPropPage,
+MenuItem *mainMenuItems[] = {
+	&menuSettingsItem,
+	&menuRecordingItem,
 	NULL
 };
 
-
-//Menu menu(propertyPages);
+MenuItemPage mainMenuPage(mainMenuItems);
 
 enum Key {
 	KEY_UP = 'w',
@@ -113,7 +115,6 @@ class NumberedPage : public ScrollablePage
 public:
 	explicit NumberedPage(uint8_t maxLines);
 	void paintLine(uint8_t line, uint8_t row, Screen *screen) const;
-	void focusLine(uint8_t line);
 	// TODO: lastSelectedEntry()
 };
 
@@ -130,22 +131,12 @@ void NumberedPage::paintLine(uint8_t line, uint8_t row, Screen *screen) const
 	lcd->print(line);
 }
 
-void NumberedPage::focusLine(uint8_t line)
-{
-}
-
-
 int main(int /*argc*/, char* /*argv*/[])
 {
 	LCDWin lcd;
 	Screen screen(&lcd, 24, 4);
-	//PropertyPage *propPage = &settingsPropPage;
-	Page *propPage = &recordingPropPage;
-	propPage->reset(); // resets visual state
-	propPage->paint(&screen);
-	//NumberedPage numPage(10);
-	//numPage.paint(&screen);
-
+	Page *page = &mainMenuPage;
+	page->paint(&screen);
 	for (;;) {
 		if (_kbhit()) {
 			int k = _getch();
@@ -153,10 +144,19 @@ int main(int /*argc*/, char* /*argv*/[])
 				break;
 			}
 			ButtonPress b = translateKey(k);
-			uint8_t ret = propPage->buttonInput(b, &screen);
-			//numPage.buttonInput(b, &screen);
-			lcd.setCursor(0, 10);
-			lcd.print(ret);
+			uint8_t line = page->buttonInput(b, &screen);
+			if (page == &mainMenuPage && line != Page::INVALID_LINE && line != 0) {
+				page = mainMenuItems[line-1]->getPage();
+				page->reset();
+				page->paint(&screen);
+			} else if ((page == &settingsPropPage || page == &recordingPropPage) && line == 0) {
+				page = &mainMenuPage;
+				//page->reset(); // no reset for keeping parent position
+				page->paint(&screen);
+			}
+
+			//lcd.setCursor(0, 10);
+			//lcd.print(line);
 		}
 		Sleep(50);
 	}
