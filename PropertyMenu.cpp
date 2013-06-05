@@ -1,3 +1,23 @@
+/*
+  PropertyMenu.cpp - Arduino lcd menu with property editing library
+  Written by Yuri Valentini <yuroller [at] gmail.com>
+  Copyright (c) 2013 Yuri Valentini, All right reserved.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
 #include "PropertyMenu.h"
 
 const char SEL_LEFT = '[';
@@ -12,7 +32,7 @@ const char REPLY_YES = 'Y';
 const char REPLY_NO = 'N';
 const char PREV_MENU[] = "..";
 
-static void pad00Print(LCDWin *lcd, uint8_t n)
+static void pad00Print(LCD *lcd, uint8_t n)
 {
 	assert(lcd != NULL);
 	assert(n < 100);
@@ -22,7 +42,7 @@ static void pad00Print(LCDWin *lcd, uint8_t n)
 	lcd->print(n);
 }
 
-static void padMulti0Print(LCDWin *lcd, uint16_t n, uint8_t width)
+static void padMulti0Print(LCD *lcd, uint16_t n, uint8_t width)
 {
 	assert(lcd != NULL);
 	uint16_t m = 10;
@@ -79,7 +99,7 @@ static void wrapIncrease(T *n, T low, T high)
 // Screen
 ///////////////////////////////////////////////////////////////////////////
 
-Screen::Screen(LCDWin *lcd, uint8_t cols, uint8_t rows)
+Screen::Screen(LCD *lcd, uint8_t cols, uint8_t rows)
 : _lcd(lcd),
 	_cols(cols),
 	_rows(rows)
@@ -103,6 +123,10 @@ Property::Property(const __FlashStringHelper *name, uint8_t maxFocusParts)
 	assert(maxFocusParts > 0);
 }
 
+Property::~Property()
+{
+}
+
 void Property::nextFocusPart()
 {
 	_focusPart++;
@@ -112,7 +136,7 @@ void Property::nextFocusPart()
 	}
 }
 
-void Property::paintLabel(LCDWin *lcd) const
+void Property::paintLabel(LCD *lcd) const
 {
 	assert(lcd != NULL);
 	lcd->print(_name);
@@ -149,7 +173,7 @@ PropertyTime::PropertyTime(const __FlashStringHelper *name, PropertyTime::Time *
 	}
 }
 
-void PropertyTime::paintEdit(LCDWin *lcd) const
+void PropertyTime::paintEdit(LCD *lcd) const
 {
 	assert(lcd != NULL);
 	assert(getFocusPart() <= 2);
@@ -218,7 +242,7 @@ void PropertyDate::onExitEdit()
 	// TODO: adjust date to a correct value
 }
 
-void PropertyDate::paintEdit(LCDWin *lcd) const
+void PropertyDate::paintEdit(LCD *lcd) const
 {
 	assert(lcd != NULL);
 	assert(getFocusPart() <= 3);
@@ -318,7 +342,7 @@ PropertyU16::PropertyU16(const __FlashStringHelper *name, uint16_t *var, uint16_
 	clipValue(_var, _limitMin, _limitMax);
 }
 
-void PropertyU16::paintEdit(LCDWin *lcd) const
+void PropertyU16::paintEdit(LCD *lcd) const
 {
 	assert(lcd != NULL);
 	assert(getFocusPart() <= 1);
@@ -356,7 +380,7 @@ PropertyBool::PropertyBool(const __FlashStringHelper *name, bool *var)
 	assert(var != NULL);
 }
 
-void PropertyBool::paintEdit(LCDWin *lcd) const
+void PropertyBool::paintEdit(LCD *lcd) const
 {
 	assert(lcd != NULL);
 	assert(getFocusPart() <= 1);
@@ -394,7 +418,7 @@ PropertyAction::PropertyAction(const __FlashStringHelper *name, Callback callbac
 	assert(callback != NULL);
 }
 
-void PropertyAction::paintEdit(LCDWin *lcd) const
+void PropertyAction::paintEdit(LCD *lcd) const
 {
 	assert(lcd != NULL);
 	assert(getFocusPart() <= 1);
@@ -436,6 +460,14 @@ void PropertyAction::onEnterEdit()
 // Page
 ///////////////////////////////////////////////////////////////////////////
 
+Page::Page()
+{
+}
+
+Page::~Page()
+{
+}
+
 void Page::reset()
 {
 }
@@ -476,7 +508,7 @@ void ScrollablePage::setMaxLines(uint8_t maxLines)
 void ScrollablePage::paint(Screen *screen) const
 {
 	assert(screen != NULL);
-	LCDWin *lcd = screen->getLcd();
+	LCD *lcd = screen->getLcd();
 	lcd->clear();
 	for (uint8_t i = 0; i < screen->getRows(); ++i) {
 		uint8_t idx = _topIndex + i;
@@ -537,7 +569,7 @@ uint8_t ScrollablePage::buttonInput(ButtonPress button, Screen *screen)
 void ScrollablePage::paintCursor(Screen *screen) const
 {
 	assert(screen != NULL);
-	LCDWin *lcd = screen->getLcd();
+	LCD *lcd = screen->getLcd();
 	for (uint8_t i = 0; i < screen->getRows(); ++i) {
 		lcd->setCursor(COL_CURSOR, i);
 		lcd->print(_cursorRow == i ? CURSOR : SPACE);
@@ -586,7 +618,7 @@ uint8_t PropertyPage::buttonInput(ButtonPress button, Screen *screen)
 		return ScrollablePage::buttonInput(button, screen);
 	}
 	Property *p = _propertiesAry[_focusLine];
-	LCDWin *lcd = screen->getLcd();
+	LCD *lcd = screen->getLcd();
 	assert(p->getFocusPart() != 0);
 	if (p->processEditInput(button)) {
 		screen->getLcd()->setCursor(_maxPropNameLen + 2, getCursorRow());
@@ -605,7 +637,7 @@ void PropertyPage::paintLine(uint8_t line, uint8_t row, Screen *screen) const
 	assert(screen != NULL);
 	Property *p = _propertiesAry[line];
 	if (p != NULL) {
-		LCDWin *lcd = screen->getLcd();
+		LCD *lcd = screen->getLcd();
 		lcd->setCursor(COL_CONTENTS, row);
 		p->paintLabel(lcd);
 		lcd->setCursor(_maxPropNameLen + 2, row);
@@ -664,7 +696,7 @@ void MenuItemPage::paintLine(uint8_t line, uint8_t row, Screen *screen) const
 	assert(screen != NULL);
 	MenuItem *p = _menuItemAry[line];
 	if (p != NULL) {
-		LCDWin *lcd = screen->getLcd();
+		LCD *lcd = screen->getLcd();
 		lcd->setCursor(COL_CONTENTS, row);
 		lcd->print(p->getName());
 	}

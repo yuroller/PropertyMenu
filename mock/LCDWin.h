@@ -69,7 +69,7 @@ typedef enum { POSITIVE, NEGATIVE } t_backlighPol;
 
 class ConsoleCore;
 
-class LCDWin : public Print 
+class LCD : public Print 
 {
 public:
    
@@ -79,7 +79,7 @@ public:
     @discussion LiquidCrystal class abstract constructor needed to create
     the base abstract class.
     */
-   LCDWin ( );
+   LCD ( );
    
    /*!
     @function

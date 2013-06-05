@@ -1,13 +1,39 @@
+/*
+  PropertyMenu.h - Arduino lcd menu with property editing library
+  Written by Yuri Valentini <yuroller [at] gmail.com>
+  Copyright (c) 2013 Yuri Valentini, All right reserved.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
+
 #ifndef PROPERTY_MENU_H_
 #define PROPERTY_MENU_H_
 
-//#define NDEBUG
+#ifndef _WIN32
+#define NDEBUG // remove assert()
+#endif
 #include <assert.h>
 #include <stdlib.h>
 #include <stdint.h>
 
 #include "WString.h"
+#ifdef _WIN32
 #include "LCDWin.h"
+#else
+#include "LCD.h"
+#endif
 
 #ifdef _WIN32
 #define PROGMEM
@@ -37,14 +63,14 @@ enum ButtonPress {
 class Screen
 {
 public:
-	Screen(LCDWin *lcd, uint8_t cols, uint8_t rows);
+	Screen(LCD *lcd, uint8_t cols, uint8_t rows);
 	
-	LCDWin *getLcd() const { return _lcd; }
+	LCD *getLcd() const { return _lcd; }
 	uint8_t getCols() const { return _cols; }
 	uint8_t getRows() const { return _rows; }
 
 private:
-	LCDWin *_lcd;
+	LCD *_lcd;
 	uint8_t _cols;
 	uint8_t _rows;
 };
@@ -56,15 +82,16 @@ private:
 class Property
 {
 public:
+	virtual ~Property();
 	const __FlashStringHelper *getName() const { return _name; }
 	uint8_t getFocusPart() const { return _focusPart; }
 	void nextFocusPart();
-	void paintLabel(LCDWin *lcd) const;
+	void paintLabel(LCD *lcd) const;
 	void enterEdit();
 
 	virtual void onEnterEdit();
 	virtual void onExitEdit();
-	virtual void paintEdit(LCDWin *lcd) const = 0;
+	virtual void paintEdit(LCD *lcd) const = 0;
 	virtual bool processEditInput(ButtonPress button) = 0; // true if it needs redraw
 
 protected:
@@ -89,7 +116,7 @@ public:
 		uint8_t mins;
 	};
 	PropertyTime(const __FlashStringHelper *name, Time *var);
-	void paintEdit(LCDWin *lcd) const;
+	void paintEdit(LCD *lcd) const;
 	bool processEditInput(ButtonPress button);
 
 private:
@@ -111,7 +138,7 @@ public:
 	};
 	PropertyDate(const __FlashStringHelper *name, Date *var);
 	void onExitEdit();
-	void paintEdit(LCDWin *lcd) const;
+	void paintEdit(LCD *lcd) const;
 	bool processEditInput(ButtonPress button);
 
 private:
@@ -127,7 +154,7 @@ class PropertyU16: public Property
 {
 public:
 	PropertyU16(const __FlashStringHelper *name, uint16_t *var, uint16_t limitMin, uint16_t limitMax);
-	void paintEdit(LCDWin *lcd) const;
+	void paintEdit(LCD *lcd) const;
 	bool processEditInput(ButtonPress button);
 
 private:
@@ -145,7 +172,7 @@ class PropertyBool: public Property
 {
 public:
 	PropertyBool(const __FlashStringHelper *name, bool *var);
-	void paintEdit(LCDWin *lcd) const;
+	void paintEdit(LCD *lcd) const;
 	bool processEditInput(ButtonPress button);
 private:
 	bool *_var;
@@ -160,7 +187,7 @@ class PropertyAction: public Property
 {
 public:
 	PropertyAction(const __FlashStringHelper *name, Callback callback);
-	void paintEdit(LCDWin *lcd) const;
+	void paintEdit(LCD *lcd) const;
 	bool processEditInput(ButtonPress button);
 	void onEnterEdit();
 private:
@@ -178,6 +205,8 @@ public:
 	enum {
 		INVALID_LINE = 0xff
 	};
+	Page();
+	virtual ~Page();
 	virtual void reset();
 	virtual void paint(Screen *screen) const;
 	// INVALID_LINE if staying in the same page, else the number of last line selected when returning to parent

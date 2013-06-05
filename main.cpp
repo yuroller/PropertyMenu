@@ -126,15 +126,15 @@ NumberedPage::NumberedPage(uint8_t maxLines)
 void NumberedPage::paintLine(uint8_t line, uint8_t row, Screen *screen) const
 {
 	assert(screen != NULL);
-	LCDWin *lcd = screen->getLcd();
+	LCD *lcd = screen->getLcd();
 	lcd->setCursor(1, row);
 	lcd->print(line);
 }
 
 int main(int /*argc*/, char* /*argv*/[])
 {
-	LCDWin lcd;
-	Screen screen(&lcd, 24, 4);
+	LCD lcd;
+	Screen screen(&lcd, 24, 2);
 	Page *page = &mainMenuPage;
 	page->paint(&screen);
 	for (;;) {
